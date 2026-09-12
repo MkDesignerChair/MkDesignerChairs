@@ -1,5 +1,6 @@
 import Image from "next/image";
 import banner from "../Public/banner.jpeg";
+import bannerPhone from "../Public/banner_phone.png";
 import logo from "../Public/logo.png";
 import diningCollection from "../Public/Dinning Chair.jpeg";
 import officeCollection from "../Public/upgrade your space.jpeg";
@@ -74,7 +75,7 @@ function ProductCard({ image, name, price, centered }) {
 }
 
 function SpaceCard({ image, title }) {
-  return <a className="space-card" href="#quote"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /><span>{title}</span></a>;
+  return <a className="space-card" href="#quote"><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label">{title}</span></a>;
 }
 
 function DetailPoint({ icon, children }) {
@@ -114,6 +115,7 @@ export default function Home() {
     <>
       <main className="hero">
       <Image className="hero-image" src={banner} alt="Brown designer office chair in a luxury interior" fill priority sizes="100vw" />
+      <Image className="hero-image-phone" src={bannerPhone} alt="Brown designer office chair in a luxury interior" fill priority sizes="(max-width: 620px) 100vw, 1px" />
       <div className="hero-shade" />
       <nav className="navbar" aria-label="Main navigation">
           <a className="brand" href="/" aria-label="Designer Chairs home">
@@ -123,6 +125,12 @@ export default function Home() {
         <div className="nav-links">
             {navItems.map((item, index) => <a className={index === 0 ? "active" : ""} href={item.href} key={item.href}>{item.label}</a>)}
         </div>
+        <details className="mobile-navigation">
+          <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
+          <div className="mobile-navigation-panel">
+            {navItems.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
+          </div>
+        </details>
         <div className="nav-actions">
           <button className="icon-button" aria-label="Search"><SearchIcon /></button>
           <button className="icon-button" aria-label="Account"><UserIcon /></button>
@@ -146,8 +154,8 @@ export default function Home() {
       </main>
 
       <section className="collections section-shell" id="collections" aria-label="Chair collections">
-        <CollectionCard image={officeChairImage} title="Office Chairs" description={<>Work Smarter<br />Sit Better</>} href="#office-chairs" />
-        <CollectionCard image={diningCollection} title="Dining Chairs" description={<>Where Comfort<br />Meets Togetherness</>} href="#dining-chairs" zoomedOut />
+        <CollectionCard image={officeChairImage} title={<>Office <br className="phone-title-break" />Chairs</>} description={<>Work Smarter<br />Sit Better</>} href="#office-chairs" />
+        <CollectionCard image={diningCollection} title={<>Dining <br className="phone-title-break" />Chairs</>} description={<>Where Comfort<br />Meets Togetherness</>} href="#dining-chairs" zoomedOut />
       </section>
 
       <section className="benefits" aria-label="Why choose us">
@@ -180,7 +188,7 @@ export default function Home() {
 
       <section className="craftsmanship" aria-label="Craftsmanship details">
         <div className="craft-image"><Image src={blueDiningChair} alt="Blue velvet dining chair detail" fill sizes="(max-width: 760px) 100vw, 50vw" /></div>
-        <div className="craft-copy"><h2>DETAILS<br />MAKE THE<br />DIFFERENCE</h2><p>Premium fabrics, fine stitching and ergonomic design come together to create chairs that stand out.</p><a className="gold-button" href="#quote">Our Craftsmanship</a></div>
+        <div className="craft-copy"><h2>DETAILS<br />MAKE THE<br />DIFFERENCE</h2><p>Premium fabrics, fine stitching and ergonomic design come together to create chairs that stand out.</p><a className="gold-button" href="#quote">Get a Quote</a></div>
         <div className="craft-points"><ul><DetailPoint icon={<CrownIcon />}>Premium<br />Quality Materials</DetailPoint><DetailPoint icon={<ToolsIcon />}>Expert<br />Craftsmanship</DetailPoint><DetailPoint icon={<LayersIcon />}>Stylish &<br />Modern Designs</DetailPoint><DetailPoint icon={<LeafIcon />}>Comfort for<br />Long Hours</DetailPoint></ul><div className="comfort-detail"><Image src={banner} alt="Fine chair stitching detail" fill sizes="(max-width: 760px) 80vw, 25vw" /><span>COMFORT<br />IN EVERY DETAIL</span></div></div>
       </section>
 

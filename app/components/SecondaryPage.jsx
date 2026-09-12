@@ -15,6 +15,10 @@ function SiteNavigation({ active }) {
     <nav className="inner-navbar" aria-label="Main navigation">
       <Link className="brand" href="/" aria-label="Designer Chairs home"><span className="brand-mark">MK</span><span>DESIGNER CHAIRS</span></Link>
       <div className="inner-nav-links">{links.map((link) => <Link className={link.label === active ? "active" : ""} href={link.href} key={link.href}>{link.label}</Link>)}</div>
+      <details className="mobile-navigation">
+        <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
+        <div className="mobile-navigation-panel">{links.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}</div>
+      </details>
       <Link className="quote-button" href="/contact">Get Quote</Link>
     </nav>
   );
