@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRef } from "react";
 import logo from "../../Public/logo.png";
 import HeaderActions from "./HeaderActions";
 
@@ -15,14 +18,20 @@ const links = [
 const mobileShopCategories = ["Office Chairs", "Dining Chairs", "Lounge Chairs", "Accent Chairs", "Ergonomic Chairs"];
 
 export function SiteNavigation({ active }) {
+  const mobileMenuRef = useRef(null);
+
+  function closeMobileMenu(event) {
+    if (event.target.closest("a")) mobileMenuRef.current?.removeAttribute("open");
+  }
+
   return (
     <nav className="inner-navbar" aria-label="Main navigation">
       <Link className="brand" href="/" aria-label="Designer Chairs home"><Image className="brand-logo" src={logo} alt="MK Designer Chairs" width={154} priority /></Link>
       <div className="inner-nav-links">{links.map((link) => <Link className={link.label === active ? "active" : ""} href={link.href} key={link.href}>{link.label}</Link>)}</div>
       <div className="header-controls"><HeaderActions /><Link className="quote-button" href="/contact">Get Quote</Link></div>
-      <details className="mobile-navigation">
+      <details className="mobile-navigation" ref={mobileMenuRef}>
         <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
-        <div className="mobile-navigation-panel">
+        <div className="mobile-navigation-panel" onClick={closeMobileMenu}>
           <div className="mobile-menu-search" aria-hidden="true"><span>Search chairs...</span><span>⌕</span></div>
           {links.filter((link) => ["Office Chairs", "Dining Chairs"].includes(link.label)).map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
           <details className="mobile-shop-menu">
