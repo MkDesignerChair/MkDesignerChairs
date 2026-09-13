@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import logo from "../../Public/logo.png";
 import HeaderActions from "./HeaderActions";
 
 const links = [
@@ -11,15 +12,27 @@ const links = [
   { href: "/contact", label: "Contact" },
 ];
 
+const mobileShopCategories = ["Office Chairs", "Dining Chairs", "Lounge Chairs", "Accent Chairs", "Ergonomic Chairs"];
+
 export function SiteNavigation({ active }) {
   return (
     <nav className="inner-navbar" aria-label="Main navigation">
-      <Link className="brand" href="/" aria-label="Designer Chairs home"><span className="brand-mark">MK</span><span>DESIGNER CHAIRS</span></Link>
+      <Link className="brand" href="/" aria-label="Designer Chairs home"><Image className="brand-logo" src={logo} alt="MK Designer Chairs" width={154} priority /></Link>
       <div className="inner-nav-links">{links.map((link) => <Link className={link.label === active ? "active" : ""} href={link.href} key={link.href}>{link.label}</Link>)}</div>
       <div className="header-controls"><HeaderActions /><Link className="quote-button" href="/contact">Get Quote</Link></div>
       <details className="mobile-navigation">
         <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
-        <div className="mobile-navigation-panel">{links.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}</div>
+        <div className="mobile-navigation-panel">
+          <div className="mobile-menu-search" aria-hidden="true"><span>Search chairs...</span><span>⌕</span></div>
+          {links.filter((link) => ["Office Chairs", "Dining Chairs"].includes(link.label)).map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
+          <details className="mobile-shop-menu">
+            <summary>Shop<span aria-hidden="true" /></summary>
+            <div>{mobileShopCategories.map((category) => <Link href={`/shop?category=${encodeURIComponent(category)}`} key={category}>{category}</Link>)}<Link href="/shop">Shop All</Link></div>
+          </details>
+          {links.filter((link) => ["About", "Contact"].includes(link.label)).map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
+          <Link className="mobile-menu-auth" href="/login">Login / Register</Link>
+          <div className="mobile-menu-contact"><a href="tel:+910000000000">+91 00000 00000</a><a href="mailto:info@designerchairs.example">info@designerchairs.example</a></div>
+        </div>
       </details>
     </nav>
   );

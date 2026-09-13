@@ -22,7 +22,7 @@ async function getCatalogProducts() {
     const category = filename === "office chair.jpeg" ? "Office Chairs" : productCategories[(index - 1 + productCategories.length) % productCategories.length];
     const override = overrides[filename] || {};
 
-    return { id: filename, image: `/api/product-image?name=${encodeURIComponent(filename)}`, name, price, category, ...override };
+    return { id: filename, image: `/api/product-image?name=${encodeURIComponent(filename)}`, name, price, category, ...override, detailSlug: `catalog-${index + 1}` };
   });
 }
 

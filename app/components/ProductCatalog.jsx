@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
+import BuyNowButton from "./BuyNowButton";
 
 const categories = ["Office Chairs", "Dining Chairs", "Lounge Chairs", "Accent Chairs", "Ergonomic Chairs"];
 
@@ -13,6 +14,12 @@ function getCategory(product, index) {
 
 function formatPrice(price) {
   return `₹${price.toLocaleString("en-IN")}`;
+}
+
+function CatalogProductCard({ product }) {
+  const href = `/products/item/${product.detailSlug}`;
+
+  return <article className="shop-product-card"><a className="shop-card-open" href={href} aria-label={`View details for ${product.name}`} /><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span></div><div className="shop-product-details"><div className="shop-product-info"><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong></div><div className="shop-card-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
 }
 
 export default function ProductCatalog({ products, initialSelectedCategory, eyebrow, title }) {
@@ -44,7 +51,7 @@ export default function ProductCatalog({ products, initialSelectedCategory, eyeb
       </aside>
       <div className="shop-products-area">
         <p className="products-showing">Showing <strong>{filteredProducts.length}</strong> products</p>
-        {filteredProducts.length > 0 ? <div className="shop-grid">{filteredProducts.map((product) => <article className="shop-product-card" key={product.id}><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span></div><div className="shop-product-details"><div><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong></div><AddToCartButton product={product} /></div></article>)}</div> : <div className="no-products"><h3>No matching chairs</h3><p>Try raising the maximum price or choosing another category.</p><button type="button" onClick={clearFilters}>Reset filters</button></div>}
+        {filteredProducts.length > 0 ? <div className="shop-grid">{filteredProducts.map((product) => <CatalogProductCard product={product} key={product.id} />)}</div> : <div className="no-products"><h3>No matching chairs</h3><p>Try raising the maximum price or choosing another category.</p><button type="button" onClick={clearFilters}>Reset filters</button></div>}
       </div>
     </div>
   </section>;

@@ -9,7 +9,9 @@ import yellowOfficeChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1
 import blueDiningChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
 import officeChairImage from "../Public/Products/office chair.jpeg";
 import AddToCartButton from "./components/AddToCartButton";
+import BuyNowButton from "./components/BuyNowButton";
 import HeaderActions from "./components/HeaderActions";
+import Link from "next/link";
 import { getSiteContent } from "./../actions/site-content";
 
 const navItems = [
@@ -20,6 +22,8 @@ const navItems = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
+
+const mobileShopCategories = ["Office Chairs", "Dining Chairs", "Lounge Chairs", "Accent Chairs", "Ergonomic Chairs"];
 
 function SearchIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4" /><path d="m16 16 4.2 4.2" /></svg>;
@@ -79,12 +83,19 @@ function FeaturedProductCard({ image, name, price, centered }) {
   return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" type="button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><AddToCartButton product={product} /></div></article>;
 }
 
+function EnhancedFeaturedProductCard({ image, name, price, centered }) {
+  const slug = name.toLowerCase().replaceAll(" ", "-");
+  const product = { id: name, image: image.src, name, price: Number(price.replace(",", "")) };
+
+  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${name}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><button className="heart-button" type="button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{name}</h3><strong>₹ {price}</strong></Link><div className="featured-product-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
+}
+
 function ProductCard({ image, name, price, centered }) {
   return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><button className="add-cart" aria-label={`Add ${name} to cart`}><CartIcon /></button></div></article>;
 }
 
-function SpaceCard({ image, title }) {
-  return <a className="space-card" href="#quote"><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label">{title}</span></a>;
+function SpaceCard({ image, title, href }) {
+  return <a className="space-card" href={href}><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label"><span>{title}</span><span className="space-card-view">View more</span></span></a>;
 }
 
 function DetailPoint({ icon, children }) {
@@ -107,30 +118,19 @@ function Testimonial({ name, role, initials, quote }) {
   return <article className="testimonial-card"><span className="quote-mark">“</span><p>{quote}</p><span className="stars" aria-label="5 out of 5 stars">★★★★★</span><div className="customer"><span className="avatar">{initials}</span><span><strong>{name}</strong><small>{role}</small></span></div></article>;
 }
 
-function SocialIcon({ name }) {
-  const icons = {
-    instagram: <><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></>,
-    facebook: <path d="M14 21v-8h2.8l.4-3H14V8.1c0-.9.3-1.6 1.7-1.6H17V3.8c-.4-.1-1.2-.2-2.2-.2-2.2 0-3.8 1.3-3.8 3.9V10H8v3h3v8z" fill="currentColor" stroke="none" />,
-    youtube: <path d="M21.5 7.1a2.8 2.8 0 0 0-2-2C17.8 4.6 12 4.6 12 4.6s-5.8 0-7.5.5a2.8 2.8 0 0 0-2 2A28.7 28.7 0 0 0 2 12a28.7 28.7 0 0 0 .5 4.9 2.8 2.8 0 0 0 2 2c1.7.5 7.5.5 7.5.5s5.8 0 7.5-.5a2.8 2.8 0 0 0 2-2A28.7 28.7 0 0 0 22 12a28.7 28.7 0 0 0-.5-4.9ZM10 15.5v-7l6 3.5z" fill="currentColor" stroke="none" />,
-    linkedin: <><rect x="4" y="9" width="3.3" height="11" fill="currentColor" stroke="none" /><circle cx="5.65" cy="5.6" r="1.8" fill="currentColor" stroke="none" /><path d="M10 20V9h3.2v1.5c.6-1 1.7-1.9 3.7-1.9 3.1 0 3.7 2 3.7 4.7V20h-3.4v-5.9c0-1.4 0-3.2-2-3.2s-2.3 1.5-2.3 3.1V20z" fill="currentColor" stroke="none" /></>,
-    pinterest: <path d="M12.4 3.3a8.7 8.7 0 0 0-3.2 16.8c-.1-1.4 0-3 .4-4.3l1-4s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.8 1.5 1.7 0 1-.7 2.6-1 4.1-.3 1.2.6 2.2 1.8 2.2 2.2 0 3.8-2.8 3.8-6.1 0-2.5-1.7-4.4-4.8-4.4-3.5 0-5.7 2.6-5.7 5.4 0 1 .3 1.8.9 2.4.2.2.2.3.1.6l-.3 1.2c-.1.4-.4.5-.7.3-1.8-.7-2.7-2.7-2.7-4.9 0-3.6 3-7.8 9.1-7.8 4.9 0 8.1 3.5 8.1 7.2 0 4.9-2.7 8.5-6.7 8.5-1.3 0-2.6-.7-3-1.5l-.8 3c-.3 1.2-1 2.7-1.5 3.6.9.3 1.9.5 3 .5a8.7 8.7 0 0 0 0-17.4Z" fill="currentColor" stroke="none" />,
-  };
-
-  return <svg viewBox="0 0 24 24" aria-hidden="true">{icons[name]}</svg>;
-}
-
 export default async function Home() {
   const content = await getSiteContent();
   return (
     <>
       <main className="hero">
-      <Image className="hero-image" src={banner} alt="Brown designer office chair in a luxury interior" fill priority sizes="100vw" />
-      <Image className="hero-image-phone" src={bannerPhone} alt="Brown designer office chair in a luxury interior" fill priority sizes="(max-width: 620px) 100vw, 1px" />
-      <div className="hero-shade" />
+      <div className="hero-artwork" aria-hidden="true">
+        <Image className="hero-image" src={banner} alt="" fill priority sizes="100vw" />
+        <Image className="hero-image-phone" src={bannerPhone} alt="" fill priority sizes="(max-width: 620px) 100vw, 1px" />
+        <div className="hero-shade" />
+      </div>
       <nav className="navbar" aria-label="Main navigation">
-          <a className="brand" href="/" aria-label="Designer Chairs home">
-          <span className="brand-mark">MK</span>
-          <span>DESIGNER CHAIRS</span>
+        <a className="brand" href="/" aria-label="Designer Chairs home">
+          <Image className="brand-logo" src={logo} alt="MK Designer Chairs" width={154} priority />
         </a>
         <div className="nav-links">
             {navItems.map((item, index) => <a className={index === 0 ? "active" : ""} href={item.href} key={item.href}>{item.label}</a>)}
@@ -138,7 +138,15 @@ export default async function Home() {
         <details className="mobile-navigation">
           <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
           <div className="mobile-navigation-panel">
-            {navItems.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
+            <div className="mobile-menu-search" aria-hidden="true"><span>Search chairs...</span><span>⌕</span></div>
+            {navItems.filter((item) => ["Office Chairs", "Dining Chairs"].includes(item.label)).map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
+            <details className="mobile-shop-menu">
+              <summary>Shop<span aria-hidden="true" /></summary>
+              <div>{mobileShopCategories.map((category) => <a href={`/shop?category=${encodeURIComponent(category)}`} key={category}>{category}</a>)}<a href="/shop">Shop All</a></div>
+            </details>
+            {navItems.filter((item) => ["About", "Contact"].includes(item.label)).map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
+            <a className="mobile-menu-auth" href="/login">Login / Register</a>
+            <div className="mobile-menu-contact"><a href="tel:+910000000000">+91 00000 00000</a><a href="mailto:info@designerchairs.example">info@designerchairs.example</a></div>
           </div>
         </details>
         <div className="header-controls"><HeaderActions /><a className="quote-button" href="#quote">Get Quote</a></div>
@@ -159,8 +167,8 @@ export default async function Home() {
       </main>
 
       <section className="collections section-shell" id="collections" aria-label="Chair collections">
-        <CollectionCard image={officeChairImage} title={<>Office <br className="phone-title-break" />Chairs</>} description={<>Work Smarter<br />Sit Better</>} href="#office-chairs" />
-        <CollectionCard image={diningCollection} title={<>Dining <br className="phone-title-break" />Chairs</>} description={<>Where Comfort<br />Meets Togetherness</>} href="#dining-chairs" zoomedOut />
+        <CollectionCard image={officeChairImage} title={<>Office <br className="phone-title-break" />Chairs</>} description={<>Work Smarter<br />Sit Better</>} href="/shop?category=Office%20Chairs" />
+        <CollectionCard image={diningCollection} title={<>Dining <br className="phone-title-break" />Chairs</>} description={<>Where Comfort<br />Meets Togetherness</>} href="/shop?category=Dining%20Chairs" zoomedOut />
       </section>
 
       <section className="benefits" aria-label="Why choose us">
@@ -172,22 +180,22 @@ export default async function Home() {
       </section>
 
       <section className="products section-shell" id="office-chairs">
-        <div className="section-heading"><div><p className="eyebrow">FEATURED PRODUCTS</p><h2>Our Best Sellers</h2></div><a href="#all-products">View All Products <b>→</b></a></div>
+        <div className="section-heading"><div><p className="eyebrow">FEATURED PRODUCTS</p><h2>Our Best Sellers</h2></div><a href="/shop">View All Products</a></div>
         <div className="product-grid">
-          <FeaturedProductCard image={officeChairImage} name="Executive Office Chair" price="12,999" />
-          <FeaturedProductCard image={yellowOfficeChair} name="Premium Office Chair" price="14,499" centered />
-          <FeaturedProductCard image={blueDiningChair} name="Luxury Dining Chair" price="8,999" />
-          <FeaturedProductCard image={pinkOfficeChair} name="Modern Office Chair" price="9,499" centered />
+          <EnhancedFeaturedProductCard image={officeChairImage} name="Executive Office Chair" price="12,999" />
+          <EnhancedFeaturedProductCard image={yellowOfficeChair} name="Premium Office Chair" price="14,499" centered />
+          <EnhancedFeaturedProductCard image={blueDiningChair} name="Luxury Dining Chair" price="8,999" />
+          <EnhancedFeaturedProductCard image={pinkOfficeChair} name="Modern Office Chair" price="9,499" centered />
         </div>
       </section>
 
       <section className="spaces section-shell" id="dining-chairs">
         <div className="spaces-copy"><h2>DESIGNED FOR<br />EVERY SPACE</h2><p>From modern offices to luxurious dining rooms, our chairs blend comfort with contemporary design to elevate your environment.</p><a className="gold-button" href="#quote">Explore Spaces</a></div>
         <div className="space-grid">
-          <SpaceCard image={officeChairImage} title={<>Office<br />Spaces</>} />
-          <SpaceCard image={diningCollection} title={<>Dining<br />Areas</>} />
-          <SpaceCard image={yellowOfficeChair} title={<>Cafés &<br />Restaurants</>} />
-          <SpaceCard image={blueDiningChair} title="Homes" />
+          <SpaceCard image={officeChairImage} title={<>Office<br />Spaces</>} href="/shop?category=Office%20Chairs" />
+          <SpaceCard image={diningCollection} title={<>Dining<br />Areas</>} href="/shop?category=Dining%20Chairs" />
+          <SpaceCard image={yellowOfficeChair} title={<>Cafés &<br />Restaurants</>} href="/shop?category=Lounge%20Chairs" />
+          <SpaceCard image={blueDiningChair} title="Homes" href="/shop?category=Accent%20Chairs" />
         </div>
       </section>
 
@@ -201,7 +209,6 @@ export default async function Home() {
 
       <section className="testimonials section-shell" aria-labelledby="testimonial-title"><p className="eyebrow">TESTIMONIALS</p><h2 id="testimonial-title">What Our Customers Say</h2><div className="testimonial-grid"><Testimonial initials="RM" name="Rahul Mehta" role="Business Owner" quote="Excellent quality and very comfortable. Perfect for my office setup!" /><Testimonial initials="PS" name="Priya Sharma" role="Homeowner" quote="Stylish and sturdy chairs. My dining area looks amazing now!" /><Testimonial initials="AV" name="Amit Verma" role="Restaurant Owner" quote="Great design, premium finish and superb customer service." /></div><div className="testimonial-dots" aria-hidden="true"><span className="active" /><span /><span /></div></section>
 
-      <footer className="site-footer"><div className="footer-content"><div className="footer-brand"><Image src={logo} alt="MK Designer Chairs" width={96} height={93} /><p>Comfort Meets Class</p></div><p className="footer-intro">MK Designer Chairs brings you premium chairs designed for modern living and working spaces. Quality, style and comfort — always.</p><nav className="footer-links" aria-label="Footer navigation"><h3>Quick Links</h3><a href="#home">Home</a><a href="#office-chairs">Office Chairs</a><a href="#dining-chairs">Dining Chairs</a><a href="#collections">Collections</a><a href="#about">About Us</a><a href="#contact">Contact</a></nav><address className="footer-contact" id="contact"><h3>Contact Us</h3><a href="tel:+910000000000">☎ &nbsp;+91 00000 00000</a><a href="mailto:info@designerchairs.example">✉ &nbsp;info@designerchairs.example</a><span>● &nbsp;Delhi, India</span></address><div className="footer-social"><h3>Follow Us</h3><div><a href="#facebook" aria-label="Facebook"><SocialIcon name="facebook" /></a><a href="#youtube" aria-label="YouTube"><SocialIcon name="youtube" /></a><a href="#linkedin" aria-label="LinkedIn"><SocialIcon name="linkedin" /></a></div></div></div><div className="footer-bottom"><span>© 2024 MK Designer Chairs. All Rights Reserved.</span><span><a href="#privacy">Privacy Policy</a><b>|</b><a href="#terms">Terms & Conditions</a></span></div></footer>
     </>
   );
 }
