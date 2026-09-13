@@ -1167,10 +1167,19 @@ img { display: block; max-width: 100%; }
 .global-storefront-navigation .inner-navbar { z-index: 1400; }
 
 @media (max-width: 620px) {
-  .products { padding-left: 14px; padding-right: 14px; }
+  .global-storefront-navigation .header-actions .icon-button:first-child { display: grid; order: 1; }
+  .global-storefront-navigation .header-actions .cart { order: 2; }
+  .benefits { column-gap: 0; grid-template-columns: repeat(6, minmax(0, 1fr)); padding-left: 10px; padding-right: 10px; row-gap: 20px; }
+  .benefit { grid-column: span 2; }
+  .benefit:nth-child(4) { grid-column: 2 / span 2; }
+  .benefit:nth-child(5) { grid-column: 4 / span 2; }
+  .collections { gap: 10px; margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); max-width: none; padding: 8px 8px 10px; width: 100vw; }
+  .collections .collection-card { width: calc(100vw - 16px); }
+  .products { padding: 30px 14px 8px; }
   .product-grid { gap: 10px; }
-  .spaces { padding-left: 12px; padding-right: 12px; }
+  .spaces { padding: 12px 12px 34px; }
   .space-grid { gap: 10px; }
+  .testimonials { padding-bottom: 10px; }
   .featured-product-card .product-details { display: block; min-height: 112px; padding: 12px; }
   .featured-product-link h3 { font-size: 12px; margin: 0 0 4px; }
   .featured-product-link strong { font-size: 14px; }
