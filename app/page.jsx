@@ -8,12 +8,15 @@ import pinkOfficeChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.0
 import yellowOfficeChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.06 PMdfd.jpeg";
 import blueDiningChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
 import officeChairImage from "../Public/Products/office chair.jpeg";
+import AddToCartButton from "./components/AddToCartButton";
+import HeaderActions from "./components/HeaderActions";
+import { getSiteContent } from "./../actions/site-content";
 
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Office Chairs", href: "/office-chairs" },
   { label: "Dining Chairs", href: "/dining-chairs" },
-  { label: "Collections", href: "/collections" },
+  { label: "Shop", href: "/shop" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
@@ -70,6 +73,12 @@ function Benefit({ icon, title, description }) {
   return <div className="benefit"><span className="benefit-icon">{icon}</span><strong>{title}</strong><span>{description}</span></div>;
 }
 
+function FeaturedProductCard({ image, name, price, centered }) {
+  const product = { id: name, image: image.src, name, price: Number(price.replace(",", "")) };
+
+  return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" type="button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><AddToCartButton product={product} /></div></article>;
+}
+
 function ProductCard({ image, name, price, centered }) {
   return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><button className="add-cart" aria-label={`Add ${name} to cart`}><CartIcon /></button></div></article>;
 }
@@ -110,7 +119,8 @@ function SocialIcon({ name }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">{icons[name]}</svg>;
 }
 
-export default function Home() {
+export default async function Home() {
+  const content = await getSiteContent();
   return (
     <>
       <main className="hero">
@@ -131,19 +141,14 @@ export default function Home() {
             {navItems.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
           </div>
         </details>
-        <div className="nav-actions">
-          <button className="icon-button" aria-label="Search"><SearchIcon /></button>
-          <button className="icon-button" aria-label="Account"><UserIcon /></button>
-          <button className="icon-button cart" aria-label="Cart"><CartIcon /><span>0</span></button>
-          <a className="quote-button" href="#quote">Get Quote</a>
-        </div>
+        <div className="header-controls"><HeaderActions /><a className="quote-button" href="#quote">Get Quote</a></div>
       </nav>
 
       <section className="hero-content" id="home">
-        <p className="eyebrow">PREMIUM CHAIRS FOR A BETTER TOMORROW</p>
-        <h1>SIT IN STYLE <span>LIVE BETTER</span></h1>
-        <p className="intro">Elegant. Ergonomic. Exceptional.<br />MK Designer Chairs bring comfort and<br className="desktop-break" /> class to every space.</p>
-          <a className="explore-button" href="#collections">Explore Collection</a>
+        <p className="eyebrow">{content.hero.eyebrow}</p>
+        <h1>{content.hero.title} <span>{content.hero.accent}</span></h1>
+        <p className="intro">{content.hero.description}</p>
+          <a className="explore-button" href="#collections">{content.hero.buttonText}</a>
       </section>
 
       <div className="features" aria-label="Product benefits">
@@ -169,10 +174,10 @@ export default function Home() {
       <section className="products section-shell" id="office-chairs">
         <div className="section-heading"><div><p className="eyebrow">FEATURED PRODUCTS</p><h2>Our Best Sellers</h2></div><a href="#all-products">View All Products <b>→</b></a></div>
         <div className="product-grid">
-          <ProductCard image={officeChairImage} name="Executive Office Chair" price="12,999" />
-          <ProductCard image={yellowOfficeChair} name="Premium Office Chair" price="14,499" centered />
-          <ProductCard image={blueDiningChair} name="Luxury Dining Chair" price="8,999" />
-          <ProductCard image={pinkOfficeChair} name="Modern Office Chair" price="9,499" centered />
+          <FeaturedProductCard image={officeChairImage} name="Executive Office Chair" price="12,999" />
+          <FeaturedProductCard image={yellowOfficeChair} name="Premium Office Chair" price="14,499" centered />
+          <FeaturedProductCard image={blueDiningChair} name="Luxury Dining Chair" price="8,999" />
+          <FeaturedProductCard image={pinkOfficeChair} name="Modern Office Chair" price="9,499" centered />
         </div>
       </section>
 
@@ -192,7 +197,7 @@ export default function Home() {
         <div className="craft-points"><ul><DetailPoint icon={<CrownIcon />}>Premium<br />Quality Materials</DetailPoint><DetailPoint icon={<ToolsIcon />}>Expert<br />Craftsmanship</DetailPoint><DetailPoint icon={<LayersIcon />}>Stylish &<br />Modern Designs</DetailPoint><DetailPoint icon={<LeafIcon />}>Comfort for<br />Long Hours</DetailPoint></ul><div className="comfort-detail"><Image src={banner} alt="Fine chair stitching detail" fill sizes="(max-width: 760px) 80vw, 25vw" /><span>COMFORT<br />IN EVERY DETAIL</span></div></div>
       </section>
 
-      <section className="upgrade-offer" id="quote"><Image src={officeCollection} alt="Luxury dining space" fill sizes="100vw" /><div className="upgrade-shade" /><div className="upgrade-copy"><p className="eyebrow">SPECIAL OFFER</p><h2>Upgrade Your Space</h2><p>Get premium chairs for your office, dining area or commercial space at the best prices.</p><a className="gold-button" href="mailto:sales@example.com">Get a Quote</a></div><span className="offer-badge">PREMIUM<br />CHAIRS FOR<br />PREMIUM<br />SPACES</span></section>
+      <section className="upgrade-offer" id="quote"><Image src={officeCollection} alt="Luxury dining space" fill sizes="100vw" /><div className="upgrade-shade" /><div className="upgrade-copy"><p className="eyebrow">{content.campaign.eyebrow}</p><h2>{content.campaign.title}</h2><p>{content.campaign.description}</p><a className="gold-button" href={`mailto:${content.campaign.email}`}>{content.campaign.buttonText}</a></div><span className="offer-badge">PREMIUM<br />CHAIRS FOR<br />PREMIUM<br />SPACES</span></section>
 
       <section className="testimonials section-shell" aria-labelledby="testimonial-title"><p className="eyebrow">TESTIMONIALS</p><h2 id="testimonial-title">What Our Customers Say</h2><div className="testimonial-grid"><Testimonial initials="RM" name="Rahul Mehta" role="Business Owner" quote="Excellent quality and very comfortable. Perfect for my office setup!" /><Testimonial initials="PS" name="Priya Sharma" role="Homeowner" quote="Stylish and sturdy chairs. My dining area looks amazing now!" /><Testimonial initials="AV" name="Amit Verma" role="Restaurant Owner" quote="Great design, premium finish and superb customer service." /></div><div className="testimonial-dots" aria-hidden="true"><span className="active" /><span /><span /></div></section>
 

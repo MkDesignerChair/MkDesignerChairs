@@ -1,0 +1,13 @@
+{
+  "WhatsApp Image 2026-09-12 adt 12.17.19 PM.jpeg": {
+    "price": 7000,
+    "isActive": true,
+    "name": "Signature Chair 01",
+    "category": "Ergonomic Chairs",
+    "stock": 0,
+    "image": "/api/product-image?name=WhatsApp%20Image%202026-09-12%20adt%2012.17.19%20PM.jpeg"
+  },
+  "WhatsApp Image 2026-09-12 at 12.17.28 PMds.jpeg": {
+    "price": 10999
+  }
+}

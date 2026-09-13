@@ -1,25 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
+import HeaderActions from "./HeaderActions";
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/office-chairs", label: "Office Chairs" },
   { href: "/dining-chairs", label: "Dining Chairs" },
-  { href: "/collections", label: "Collections" },
+  { href: "/shop", label: "Shop" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
-function SiteNavigation({ active }) {
+export function SiteNavigation({ active }) {
   return (
     <nav className="inner-navbar" aria-label="Main navigation">
       <Link className="brand" href="/" aria-label="Designer Chairs home"><span className="brand-mark">MK</span><span>DESIGNER CHAIRS</span></Link>
       <div className="inner-nav-links">{links.map((link) => <Link className={link.label === active ? "active" : ""} href={link.href} key={link.href}>{link.label}</Link>)}</div>
+      <div className="header-controls"><HeaderActions /><Link className="quote-button" href="/contact">Get Quote</Link></div>
       <details className="mobile-navigation">
         <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
         <div className="mobile-navigation-panel">{links.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}</div>
       </details>
-      <Link className="quote-button" href="/contact">Get Quote</Link>
     </nav>
   );
 }
