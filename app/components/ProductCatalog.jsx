@@ -41,7 +41,7 @@ export default function ProductCatalog({ products, initialSelectedCategory, eyeb
   }
 
   return <section className="shop-content">
-    <div className="shop-heading"><div><p className="eyebrow">{eyebrow ?? "THE FULL COLLECTION"}</p><h2>{title ?? "Every Chair, One Place"}</h2></div><span>{filteredProducts.length} of {products.length} designs</span></div>
+    <div className="shop-heading"><div><p className="eyebrow">{eyebrow ?? "THE FULL COLLECTION"}</p><h2>{title ?? "Every Chair, One Place"}</h2></div></div>
     <button className="filter-toggle" type="button" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((open) => !open)}>Filters <span>{selectedCategories.length || "All"}</span></button>
     <div className="shop-catalog-layout">
       <aside className={`product-filters ${filtersOpen ? "is-open" : ""}`} aria-label="Filter products">

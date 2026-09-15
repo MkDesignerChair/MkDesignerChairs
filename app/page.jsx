@@ -168,7 +168,7 @@ export default async function Home() {
 
       <section className="collections section-shell" id="collections" aria-label="Chair collections">
         <CollectionCard image={officeChairImage} title={<>Office <br className="phone-title-break" />Chairs</>} description={<>Work Smarter<br />Sit Better</>} href="/shop?category=Office%20Chairs" />
-        <CollectionCard image={diningCollection} title={<>Dining <br className="phone-title-break" />Chairs</>} description={<>Where Comfort<br />Meets Togetherness</>} href="/shop?category=Dining%20Chairs" zoomedOut />
+        <CollectionCard image={diningCollection} title={<>Dining <br className="phone-title-break" />Chairs</>} description={<>Where Comfort<br />Meets Togetherness</>} href="/shop?category=Dining%20Chairs" />
       </section>
 
       <section className="benefits" aria-label="Why choose us">
@@ -190,7 +190,7 @@ export default async function Home() {
       </section>
 
       <section className="spaces section-shell" id="dining-chairs">
-        <div className="spaces-copy"><h2>DESIGNED FOR<br />EVERY SPACE</h2><p>From modern offices to luxurious dining rooms, our chairs blend comfort with contemporary design to elevate your environment.</p><a className="gold-button" href="#quote">Explore Spaces</a></div>
+        <div className="spaces-copy"><h2>Designed for<br />Every Space</h2><p>From modern offices to luxurious dining rooms, our chairs blend comfort with contemporary design to elevate your environment.</p><a className="gold-button" href="#quote">Explore Spaces</a></div>
         <div className="space-grid">
           <SpaceCard image={officeChairImage} title={<>Office<br />Spaces</>} href="/shop?category=Office%20Chairs" />
           <SpaceCard image={diningCollection} title={<>Dining<br />Areas</>} href="/shop?category=Dining%20Chairs" />
@@ -201,7 +201,7 @@ export default async function Home() {
 
       <section className="craftsmanship" aria-label="Craftsmanship details">
         <div className="craft-image"><Image src={blueDiningChair} alt="Blue velvet dining chair detail" fill sizes="(max-width: 760px) 100vw, 50vw" /></div>
-        <div className="craft-copy"><h2>DETAILS<br />MAKE THE<br />DIFFERENCE</h2><p>Premium fabrics, fine stitching and ergonomic design come together to create chairs that stand out.</p><a className="gold-button" href="#quote">Get a Quote</a></div>
+        <div className="craft-copy"><h2>Details Make<br />the Difference</h2><p>Premium fabrics, fine stitching and ergonomic design come together to create chairs that stand out.</p><a className="gold-button" href="#quote">Get a Quote</a></div>
         <div className="craft-points"><ul><DetailPoint icon={<CrownIcon />}>Premium<br />Quality Materials</DetailPoint><DetailPoint icon={<ToolsIcon />}>Expert<br />Craftsmanship</DetailPoint><DetailPoint icon={<LayersIcon />}>Stylish &<br />Modern Designs</DetailPoint><DetailPoint icon={<LeafIcon />}>Comfort for<br />Long Hours</DetailPoint></ul><div className="comfort-detail"><Image src={banner} alt="Fine chair stitching detail" fill sizes="(max-width: 760px) 80vw, 25vw" /><span>COMFORT<br />IN EVERY DETAIL</span></div></div>
       </section>
 

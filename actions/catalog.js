@@ -35,12 +35,16 @@ export async function updateCatalogOverride(productId, changes) {
   const isActive = typeof changes.isActive === "boolean" ? changes.isActive : undefined;
   const featured = typeof changes.featured === "boolean" ? changes.featured : undefined;
   const stock = typeof changes.stock === "number" ? changes.stock : undefined;
+  const galleryImages = Array.isArray(changes.galleryImages) ? changes.galleryImages : undefined;
   const textFields = ["shortDescription", "description", "material", "dimensions", "weightCapacity", "warranty", "finishOptions", "faqs", "seoTitle", "seoDescription", "badge", "image"];
 
   if (name !== undefined && !name) throw new Error("Product name cannot be empty.");
   if (price !== undefined && (!Number.isFinite(price) || price < 1)) throw new Error("Price must be a positive number.");
   if (category !== undefined && !allowedCategories.has(category)) throw new Error("Choose a valid chair category.");
   if (stock !== undefined && (!Number.isInteger(stock) || stock < 0)) throw new Error("Stock must be a whole number.");
+  if (galleryImages !== undefined && (galleryImages.length > 8 || galleryImages.some((image) => typeof image !== "string" || !image.trim()))) {
+    throw new Error("Add up to eight valid gallery images.");
+  }
 
   const overrides = await getCatalogOverrides();
   const nextOverride = { ...(overrides[productId] || {}) };
@@ -50,6 +54,7 @@ export async function updateCatalogOverride(productId, changes) {
   if (isActive !== undefined) nextOverride.isActive = isActive;
   if (featured !== undefined) nextOverride.featured = featured;
   if (stock !== undefined) nextOverride.stock = stock;
+  if (galleryImages !== undefined) nextOverride.galleryImages = [...new Set(galleryImages.map((image) => image.trim()))];
   for (const field of textFields) {
     if (typeof changes[field] === "string") nextOverride[field] = changes[field].trim();
   }

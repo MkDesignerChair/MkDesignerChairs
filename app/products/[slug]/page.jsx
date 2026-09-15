@@ -20,6 +20,10 @@ function formatPrice(price) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
+function getImageSource(image) {
+  return typeof image === "string" ? image : image.src;
+}
+
 function getProductHighlights(category) {
   const bestFor = category === "Office Chairs" ? "Focused work and study" : category === "Dining Chairs" ? "Dining and entertaining" : "Everyday seating spaces";
 
@@ -30,11 +34,32 @@ function getProductHighlights(category) {
   ];
 }
 
+function getProductImages(product) {
+  const images = [product.image, ...(Array.isArray(product.galleryImages) ? product.galleryImages : [])].filter(Boolean);
+
+  return images.filter((image, index) => images.findIndex((candidate) => getImageSource(candidate) === getImageSource(image)) === index);
+}
+
+function getRelatedProducts(product, catalogProducts) {
+  return [...products, ...catalogProducts]
+    .filter((candidate) => candidate.name !== product.name)
+    .sort((first, second) => Number(second.category === product.category) - Number(first.category === product.category))
+    .slice(0, 3);
+}
+
+function RelatedProductCard({ product }) {
+  const image = getImageSource(product.image);
+  const slug = product.detailSlug || product.slug || product.id;
+
+  return <a className="related-product-card" href={`/products/${slug}`}><div className="related-product-image"><img src={image} alt={product.name} /></div><div className="related-product-copy"><span>{product.category}</span><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong></div></a>;
+}
+
 export default async function ProductPage({ params }) {
   const { slug } = await params;
   const catalogProducts = await getProducts();
   const catalogProduct = catalogProducts.find((item) => item.detailSlug === slug || item.id === slug);
-  const product = products.find((item) => item.slug === slug) || (catalogProduct ? {
+  const staticProduct = products.find((item) => item.slug === slug);
+  const product = staticProduct || (catalogProduct ? {
     ...catalogProduct,
     slug: catalogProduct.id,
     material: catalogProduct.material || "Premium chair upholstery",
@@ -45,9 +70,11 @@ export default async function ProductPage({ params }) {
 
   if (!product) notFound();
 
-  const imageUrl = typeof product.image === "string" ? product.image : product.image.src;
+  const imageUrl = getImageSource(product.image);
   const cartProduct = { id: product.slug, image: imageUrl, name: product.name, price: product.price, category: product.category };
   const highlights = getProductHighlights(product.category);
+  const productImages = getProductImages(product);
+  const relatedProducts = getRelatedProducts(product, catalogProducts);
 
-  return <main className="product-detail-page"><SiteNavigation active="Shop" /><section className="product-detail-shell"><ProductImageZoom image={product.image} alt={product.name} /><article className="product-detail-copy"><p className="eyebrow">{product.category}</p><h1>{product.name}</h1><strong>{formatPrice(product.price)}</strong><p>{product.description}</p><div className="product-detail-actions"><AddToCartButton product={cartProduct} /><BuyNowButton product={cartProduct} /></div><section className="product-highlights" aria-label="Product highlights">{highlights.map((highlight) => <div key={highlight.label}><span>{highlight.label}</span><strong>{highlight.value}</strong></div>)}</section><section className="product-specifications"><h2>Chair details</h2><dl><div><dt>Material</dt><dd>{product.material}</dd></div><div><dt>Dimensions</dt><dd>{product.dimensions}</dd></div><div><dt>Warranty</dt><dd>{product.warranty}</dd></div></dl><p className="product-service-note">Delivery guidance, secure checkout, and care support are available with your order.</p></section></article></section></main>;
+  return <main className="product-detail-page"><SiteNavigation active="Shop" /><section className="product-detail-shell"><ProductImageZoom images={productImages} alt={product.name} /><article className="product-detail-copy"><p className="eyebrow product-detail-category">{product.category}</p><h1>{product.name}</h1><strong>{formatPrice(product.price)}</strong><p>{product.description}</p><div className="product-detail-actions"><AddToCartButton product={cartProduct} /><BuyNowButton product={cartProduct} /></div><section className="product-highlights" aria-label="Product highlights">{highlights.map((highlight) => <div key={highlight.label}><span>{highlight.label}</span><strong>{highlight.value}</strong></div>)}</section><section className="product-specifications"><h2>Chair details</h2><dl><div><dt>Material</dt><dd>{product.material}</dd></div><div><dt>Dimensions</dt><dd>{product.dimensions}</dd></div><div><dt>Warranty</dt><dd>{product.warranty}</dd></div></dl><p className="product-service-note">Delivery guidance, secure checkout, and care support are available with your order.</p></section></article></section>{relatedProducts.length > 0 && <section className="related-products" aria-labelledby="related-products-title"><div className="related-products-heading"><p className="eyebrow">MORE TO EXPLORE</p><h2 id="related-products-title">You might also like</h2></div><div className="related-products-grid">{relatedProducts.map((relatedProduct) => <RelatedProductCard key={relatedProduct.detailSlug || relatedProduct.slug || relatedProduct.id} product={relatedProduct} />)}</div></section>}</main>;
 }
