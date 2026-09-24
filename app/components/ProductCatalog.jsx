@@ -4,14 +4,6 @@ import { useMemo, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import BuyNowButton from "./BuyNowButton";
 
-const categories = ["Office Chairs", "Dining Chairs", "Lounge Chairs", "Accent Chairs", "Ergonomic Chairs"];
-
-function getCategory(product, index) {
-  if (product.category) return product.category;
-  if (product.name === "Executive Office Chair") return "Office Chairs";
-  return categories[(index - 1 + categories.length) % categories.length];
-}
-
 function formatPrice(price) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
@@ -22,14 +14,13 @@ function CatalogProductCard({ product }) {
   return <article className="shop-product-card"><a className="shop-card-open" href={href} aria-label={`View details for ${product.name}`} /><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span></div><div className="shop-product-details"><div className="shop-product-info"><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong></div><div className="shop-card-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
 }
 
-export default function ProductCatalog({ products, initialSelectedCategory, eyebrow, title }) {
+export default function ProductCatalog({ categories, products, initialSelectedCategory, eyebrow, title }) {
   const lowestPrice = Math.min(...products.map((product) => product.price));
   const highestPrice = Math.max(...products.map((product) => product.price));
   const [selectedCategories, setSelectedCategories] = useState(() => initialSelectedCategory ? [initialSelectedCategory] : []);
   const [maxPrice, setMaxPrice] = useState(highestPrice);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const categorizedProducts = useMemo(() => products.map((product, index) => ({ ...product, category: getCategory(product, index) })), [products]);
-  const filteredProducts = categorizedProducts.filter((product) => (selectedCategories.length === 0 || selectedCategories.includes(product.category)) && product.price <= maxPrice);
+  const filteredProducts = useMemo(() => products.filter((product) => (selectedCategories.length === 0 || selectedCategories.includes(product.categoryId)) && product.price <= maxPrice), [maxPrice, products, selectedCategories]);
 
   function toggleCategory(category) {
     setSelectedCategories((current) => current.includes(category) ? current.filter((item) => item !== category) : [...current, category]);
@@ -46,7 +37,7 @@ export default function ProductCatalog({ products, initialSelectedCategory, eyeb
     <div className="shop-catalog-layout">
       <aside className={`product-filters ${filtersOpen ? "is-open" : ""}`} aria-label="Filter products">
         <div className="filter-heading"><h3>Filter Products</h3><button type="button" onClick={clearFilters}>Clear all</button></div>
-        <fieldset className="filter-group"><legend>Categories</legend>{categories.map((category) => <label className="filter-checkbox" key={category}><input type="checkbox" checked={selectedCategories.includes(category)} onChange={() => toggleCategory(category)} /><span>{category}</span></label>)}</fieldset>
+        <fieldset className="filter-group"><legend>Categories</legend>{categories.map((category) => <label className="filter-checkbox" key={category.id}><input type="checkbox" checked={selectedCategories.includes(category.id)} onChange={() => toggleCategory(category.id)} /><span>{category.name}</span></label>)}</fieldset>
         <fieldset className="filter-group filter-price"><legend><span>Max Price</span><strong>{formatPrice(maxPrice)}</strong></legend><input aria-label="Maximum price" max={highestPrice} min={lowestPrice} onChange={(event) => setMaxPrice(Number(event.target.value))} step="250" type="range" value={maxPrice} /><div><span>{formatPrice(lowestPrice)}</span><span>{formatPrice(highestPrice)}</span></div></fieldset>
       </aside>
       <div className="shop-products-area">

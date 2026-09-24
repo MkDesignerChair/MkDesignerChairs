@@ -1,0 +1,47 @@
+[
+  {
+    "id": "office",
+    "name": "Office Chairs",
+    "slug": "office-chairs",
+    "description": "Purposeful comfort for focused work and study.",
+    "image": "/Products/office%20chair.jpeg",
+    "defaultImage": "/Products/office%20chair.jpeg",
+    "featured": true
+  },
+  {
+    "id": "dining",
+    "name": "Dining Chairs",
+    "slug": "dining-chairs",
+    "description": "Comfortable seating for memorable meals together.",
+    "image": "/Dinning%20Chair.jpeg",
+    "defaultImage": "/Dinning%20Chair.jpeg",
+    "featured": true
+  },
+  {
+    "id": "lounge",
+    "name": "Lounge Chairs",
+    "slug": "lounge-chairs",
+    "description": "Relaxed seating for cafés, lounges, and shared spaces.",
+    "image": "/Products/WhatsApp%20Image%202026-09-12%20at%201.09.06%20PMdfd.jpeg",
+    "defaultImage": "/Products/WhatsApp%20Image%202026-09-12%20at%201.09.06%20PMdfd.jpeg",
+    "featured": true
+  },
+  {
+    "id": "accent",
+    "name": "Accent Chairs",
+    "slug": "accent-chairs",
+    "description": "Distinctive pieces that complete every room.",
+    "image": "/Products/WhatsApp%20Image%202026-09-12%20at%201.09.07%20PMdfd.jpeg",
+    "defaultImage": "/Products/WhatsApp%20Image%202026-09-12%20at%201.09.07%20PMdfd.jpeg",
+    "featured": true
+  },
+  {
+    "id": "ergonomic",
+    "name": "Ergonomic Chairs",
+    "slug": "ergonomic-chairs",
+    "description": "Supportive seating designed for long, comfortable days.",
+    "image": "/Products/WhatsApp%20Image%202026-09-12%20at%201.09.05%20PMasd.jpeg",
+    "defaultImage": "/Products/WhatsApp%20Image%202026-09-12%20at%201.09.05%20PMasd.jpeg",
+    "featured": false
+  }
+]

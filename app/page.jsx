@@ -1,29 +1,17 @@
 import Image from "next/image";
 import banner from "../Public/banner.jpeg";
-import bannerPhone from "../Public/banner_phone.png";
 import logo from "../Public/logo.png";
-import diningCollection from "../Public/Dinning Chair.jpeg";
 import officeCollection from "../Public/upgrade your space.jpeg";
-import pinkOfficeChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.05 PMasd.jpeg";
-import yellowOfficeChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.06 PMdfd.jpeg";
 import blueDiningChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
-import officeChairImage from "../Public/Products/office chair.jpeg";
 import AddToCartButton from "./components/AddToCartButton";
 import BuyNowButton from "./components/BuyNowButton";
 import HeaderActions from "./components/HeaderActions";
 import Link from "next/link";
 import { getSiteContent } from "./../actions/site-content";
+import { getProducts } from "./lib/products";
+import { getCategories } from "../actions/category-catalog";
 
-const navItems = [
-  { label: "Home", href: "/" },
-  { label: "Office Chairs", href: "/office-chairs" },
-  { label: "Dining Chairs", href: "/dining-chairs" },
-  { label: "Shop", href: "/shop" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
-
-const mobileShopCategories = ["Office Chairs", "Dining Chairs", "Lounge Chairs", "Accent Chairs", "Ergonomic Chairs"];
+export const dynamic = "force-dynamic";
 
 function SearchIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4" /><path d="m16 16 4.2 4.2" /></svg>;
@@ -73,6 +61,10 @@ function CollectionCard({ image, title, description, href, zoomedOut }) {
   return <a className={`collection-card${zoomedOut ? " collection-card--zoomed-out" : ""}`} href={href}><Image src={image} alt="" fill sizes="(max-width: 700px) 100vw, 50vw" /><span className="collection-overlay" /><span className="collection-copy"><strong>{title}</strong><small>{description}</small><span className="collection-button">View Collection</span></span></a>;
 }
 
+function CollectionDescription({ children }) {
+  return children.split(" / ").map((line, index) => <span key={`${line}-${index}`}>{index > 0 && <br />}{line}</span>);
+}
+
 function Benefit({ icon, title, description }) {
   return <div className="benefit"><span className="benefit-icon">{icon}</span><strong>{title}</strong><span>{description}</span></div>;
 }
@@ -83,11 +75,10 @@ function FeaturedProductCard({ image, name, price, centered }) {
   return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" type="button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><AddToCartButton product={product} /></div></article>;
 }
 
-function EnhancedFeaturedProductCard({ image, name, price, centered }) {
-  const slug = name.toLowerCase().replaceAll(" ", "-");
-  const product = { id: name, image: image.src, name, price: Number(price.replace(",", "")) };
+function EnhancedFeaturedProductCard({ product, centered }) {
+  const slug = product.detailSlug || product.id;
 
-  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${name}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><button className="heart-button" type="button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{name}</h3><strong>₹ {price}</strong></Link><div className="featured-product-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
+  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${product.name}`}><Image src={product.image} alt={product.name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><button className="heart-button" type="button" aria-label={`Add ${product.name} to wishlist`}>♡</button></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{product.name}</h3><strong>₹ {product.price.toLocaleString("en-IN")}</strong></Link><div className="featured-product-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
 }
 
 function ProductCard({ image, name, price, centered }) {
@@ -119,13 +110,25 @@ function Testimonial({ name, role, initials, quote }) {
 }
 
 export default async function Home() {
-  const content = await getSiteContent();
+  const [content, products, categories] = await Promise.all([getSiteContent(), getProducts(), getCategories()]);
+  const featuredProducts = products.filter((product) => product.featured === true);
+  const featuredCategories = categories.filter((category) => category.featured);
+  const officeCategory = categories.find((category) => category.id === "office");
+  const diningCategory = categories.find((category) => category.id === "dining");
+  const navItems = [
+    { label: "Home", href: "/" },
+    ...(officeCategory ? [{ label: officeCategory.name, href: "/office-chairs" }] : []),
+    ...(diningCategory ? [{ label: diningCategory.name, href: "/dining-chairs" }] : []),
+    { label: "Shop", href: "/shop" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
+  ];
   return (
     <>
       <main className="hero">
       <div className="hero-artwork" aria-hidden="true">
-        <Image className="hero-image" src={banner} alt="" fill priority sizes="100vw" />
-        <Image className="hero-image-phone" src={bannerPhone} alt="" fill priority sizes="(max-width: 620px) 100vw, 1px" />
+        <Image className="hero-image" src={content.hero.heroImage || "/banner.jpeg"} alt="" fill priority sizes="100vw" />
+        <Image className="hero-image-phone" src={content.hero.heroImage || "/banner.jpeg"} alt="" fill priority sizes="(max-width: 620px) 100vw, 1px" />
         <div className="hero-shade" />
       </div>
       <nav className="navbar" aria-label="Main navigation">
@@ -139,14 +142,15 @@ export default async function Home() {
           <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
           <div className="mobile-navigation-panel">
             <div className="mobile-menu-search" aria-hidden="true"><span>Search chairs...</span><span>⌕</span></div>
-            {navItems.filter((item) => ["Office Chairs", "Dining Chairs"].includes(item.label)).map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
+            <a href="/">Home</a>
+            {navItems.filter((item) => item.href === "/office-chairs" || item.href === "/dining-chairs").map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
             <details className="mobile-shop-menu">
               <summary>Shop<span aria-hidden="true" /></summary>
-              <div>{mobileShopCategories.map((category) => <a href={`/shop?category=${encodeURIComponent(category)}`} key={category}>{category}</a>)}<a href="/shop">Shop All</a></div>
+              <div>{categories.map((category) => <a href={`/shop?category=${encodeURIComponent(category.slug)}`} key={category.id}>{category.name}</a>)}<a href="/shop">Shop All</a></div>
             </details>
             {navItems.filter((item) => ["About", "Contact"].includes(item.label)).map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
             <a className="mobile-menu-auth" href="/login">Login / Register</a>
-            <div className="mobile-menu-contact"><a href="tel:+910000000000">+91 00000 00000</a><a href="mailto:info@designerchairs.example">info@designerchairs.example</a></div>
+            <div className="mobile-menu-contact"><a href="tel:+910000000000">7620503029</a><a href="mailto:mkdesignerchair@gmail.com">mkdesignerchair@gmail.com</a></div>
           </div>
         </details>
         <div className="header-controls"><HeaderActions /><a className="quote-button" href="#quote">Get Quote</a></div>
@@ -167,8 +171,8 @@ export default async function Home() {
       </main>
 
       <section className="collections section-shell" id="collections" aria-label="Chair collections">
-        <CollectionCard image={officeChairImage} title={<>Office <br className="phone-title-break" />Chairs</>} description={<>Work Smarter<br />Sit Better</>} href="/shop?category=Office%20Chairs" />
-        <CollectionCard image={diningCollection} title={<>Dining <br className="phone-title-break" />Chairs</>} description={<>Where Comfort<br />Meets Togetherness</>} href="/shop?category=Dining%20Chairs" />
+        {officeCategory && <CollectionCard image={content.hero.officeCollectionImage || officeCategory.image || officeCategory.defaultImage} title={officeCategory.name} description={<CollectionDescription>{content.hero.officeCollectionDescription}</CollectionDescription>} href={`/shop?category=${encodeURIComponent(officeCategory.slug)}`} />}
+        {diningCategory && <CollectionCard image={content.hero.diningCollectionImage || diningCategory.image || diningCategory.defaultImage} title={diningCategory.name} description={<CollectionDescription>{content.hero.diningCollectionDescription}</CollectionDescription>} href={`/shop?category=${encodeURIComponent(diningCategory.slug)}`} />}
       </section>
 
       <section className="benefits" aria-label="Why choose us">
@@ -182,20 +186,14 @@ export default async function Home() {
       <section className="products section-shell" id="office-chairs">
         <div className="section-heading"><div><p className="eyebrow">FEATURED PRODUCTS</p><h2>Our Best Sellers</h2></div><a href="/shop">View All Products</a></div>
         <div className="product-grid">
-          <EnhancedFeaturedProductCard image={officeChairImage} name="Executive Office Chair" price="12,999" />
-          <EnhancedFeaturedProductCard image={yellowOfficeChair} name="Premium Office Chair" price="14,499" centered />
-          <EnhancedFeaturedProductCard image={blueDiningChair} name="Luxury Dining Chair" price="8,999" />
-          <EnhancedFeaturedProductCard image={pinkOfficeChair} name="Modern Office Chair" price="9,499" centered />
+          {featuredProducts.map((product, index) => <EnhancedFeaturedProductCard centered={index % 2 === 1} key={product.id} product={product} />)}
         </div>
       </section>
 
       <section className="spaces section-shell" id="dining-chairs">
         <div className="spaces-copy"><h2>Designed for<br />Every Space</h2><p>From modern offices to luxurious dining rooms, our chairs blend comfort with contemporary design to elevate your environment.</p><a className="gold-button" href="#quote">Explore Spaces</a></div>
         <div className="space-grid">
-          <SpaceCard image={officeChairImage} title={<>Office<br />Spaces</>} href="/shop?category=Office%20Chairs" />
-          <SpaceCard image={diningCollection} title={<>Dining<br />Areas</>} href="/shop?category=Dining%20Chairs" />
-          <SpaceCard image={yellowOfficeChair} title={<>Cafés &<br />Restaurants</>} href="/shop?category=Lounge%20Chairs" />
-          <SpaceCard image={blueDiningChair} title="Homes" href="/shop?category=Accent%20Chairs" />
+          {featuredCategories.map((category) => <SpaceCard image={category.image || category.defaultImage || "/placeholder.png"} key={category.id} title={category.name} href={`/shop?category=${encodeURIComponent(category.slug)}`} />)}
         </div>
       </section>
 

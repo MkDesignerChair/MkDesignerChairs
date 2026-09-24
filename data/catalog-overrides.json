@@ -5,9 +5,23 @@
     "name": "Signature Chair 01",
     "category": "Ergonomic Chairs",
     "stock": 0,
-    "image": "/api/product-image?name=WhatsApp%20Image%202026-09-12%20adt%2012.17.19%20PM.jpeg"
+    "image": "/api/product-image?name=WhatsApp%20Image%202026-09-12%20adt%2012.17.19%20PM.jpeg",
+    "shortDescription": "short",
+    "featured": false
   },
   "WhatsApp Image 2026-09-12 at 12.17.28 PMds.jpeg": {
     "price": 10999
+  },
+  "WhatsApp Image 2026-09-12 at 12.d17.24 PM.jpeg": {
+    "name": "Signature Chair 39",
+    "price": 13999,
+    "category": "Lounge Chairs",
+    "stock": 0,
+    "galleryImages": [
+      "/api/product-image?name=chair-1790244892520.png"
+    ],
+    "image": "/api/product-image?name=WhatsApp%20Image%202026-09-12%20at%2012.d17.24%20PM.jpeg",
+    "shortDescription": "",
+    "description": ""
   }
 }

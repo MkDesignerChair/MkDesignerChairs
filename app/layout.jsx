@@ -2,6 +2,9 @@ import "./globals.css";
 import SiteFooter from "./components/SiteFooter";
 import { StoreProvider } from "./components/StoreProvider";
 import StorefrontNavigation from "./components/StorefrontNavigation";
+import { getCategories } from "../actions/category-catalog";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Designer Chairs | Premium Seating",
@@ -13,10 +16,12 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const categories = await getCategories();
+
   return (
     <html lang="en">
-      <body><StoreProvider><StorefrontNavigation />{children}<SiteFooter /></StoreProvider></body>
+      <body><StoreProvider><StorefrontNavigation categories={categories} />{children}<SiteFooter /></StoreProvider></body>
     </html>
   );
 }

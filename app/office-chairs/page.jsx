@@ -2,11 +2,13 @@ import officeChair from "../../Public/Products/office chair.jpeg";
 import ProductCatalog from "../components/ProductCatalog";
 import SecondaryPage from "../components/SecondaryPage";
 import { getProducts } from "../lib/products";
+import { getCategories } from "../../actions/category-catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function OfficeChairsPage() {
-  const products = await getProducts();
+  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+  const category = categories.find((item) => item.id === "office");
 
-  return <SecondaryPage active="Office Chairs" eyebrow="WORK SMARTER, SIT BETTER" title="Office Chairs" description="Ergonomic seating designed to keep every workday comfortable, focused and refined." image={officeChair}><ProductCatalog products={products} initialSelectedCategory="Office Chairs" eyebrow="WORKSPACE ESSENTIALS" title="Office Chairs" /></SecondaryPage>;
+  return <SecondaryPage active={category?.name} eyebrow="WORK SMARTER, SIT BETTER" title={category?.name || "Chair Collection"} description={category?.description || "Explore premium seating for every space."} image={category?.image || officeChair}><ProductCatalog categories={categories} products={products} initialSelectedCategory={category?.id} eyebrow="WORKSPACE ESSENTIALS" title={category?.name || "Chair Collection"} /></SecondaryPage>;
 }

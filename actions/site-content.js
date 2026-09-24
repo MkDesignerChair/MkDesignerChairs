@@ -4,10 +4,21 @@ import { join } from "node:path";
 const filePath = join(process.cwd(), "data", "site-content.json");
 
 export const defaultSiteContent = {
-  hero: { eyebrow: "PREMIUM CHAIRS FOR A BETTER TOMORROW", title: "SIT IN STYLE", accent: "LIVE BETTER", description: "Elegant. Ergonomic. Exceptional. MK Designer Chairs bring comfort and class to every space.", buttonText: "Explore Collection" },
+  hero: {
+    eyebrow: "PREMIUM CHAIRS FOR A BETTER TOMORROW",
+    title: "SIT IN STYLE",
+    accent: "LIVE BETTER",
+    description: "Elegant. Ergonomic. Exceptional. MK Designer Chairs bring comfort and class to every space.",
+    buttonText: "Explore Collection",
+    heroImage: "/banner.jpeg",
+    officeCollectionImage: "/Products/office%20chair.jpeg",
+    diningCollectionImage: "/Dinning%20Chair.jpeg",
+    officeCollectionDescription: "Work Smarter / Sit Better",
+    diningCollectionDescription: "Where Comfort Meets Togetherness",
+  },
   campaign: { eyebrow: "SPECIAL OFFER", title: "Upgrade Your Space", description: "Get premium chairs for your office, dining area or commercial space at the best prices.", buttonText: "Get a Quote", email: "sales@example.com" },
   about: { eyebrow: "THE MK DESIGNER CHAIRS STORY", title: "Comfort Meets Class", description: "We combine timeless design, premium materials and thoughtful ergonomics to create chairs you will love to live with.", promiseTitle: "Designed around the way you live.", promiseDescription: "Every MK Designer Chair is selected with a simple goal: offer exceptional comfort without compromising on character, craftsmanship or durability." },
-  settings: { storeName: "MK Designer Chairs", contactEmail: "info@designerchairs.example", phone: "+91 00000 00000", location: "Delhi, India" },
+  settings: { storeName: "MK Designer Chairs", contactEmail: "mkdesignerchair@gmail.com", phone: "7620503029", location: "Thane, Maharashtra" },
 };
 
 export async function getSiteContent() {
