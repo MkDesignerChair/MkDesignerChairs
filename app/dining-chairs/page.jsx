@@ -1,4 +1,4 @@
-import diningRoom from "../../Public/Dinning Chair.jpeg";
+import diningRoom from "../../public/Dinning Chair.jpeg";
 import ProductCatalog from "../components/ProductCatalog";
 import SecondaryPage from "../components/SecondaryPage";
 import { getProducts } from "../lib/products";

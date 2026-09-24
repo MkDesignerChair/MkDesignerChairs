@@ -17,7 +17,7 @@ export async function POST(request) {
   if (!allowedExtensions.has(extension)) return NextResponse.json({ error: "Use a JPG, PNG, or WEBP image." }, { status: 400 });
 
   const fileName = `chair-${Date.now()}${extension}`;
-  const productDirectory = join(process.cwd(), "Public", "Products");
+  const productDirectory = join(process.cwd(), "public", "Products");
   await mkdir(productDirectory, { recursive: true });
   await writeFile(join(productDirectory, fileName), Buffer.from(await file.arrayBuffer()));
 

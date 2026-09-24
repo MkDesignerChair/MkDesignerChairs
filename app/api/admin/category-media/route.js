@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "../../../lib/admin-auth";
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-const uploadDirectory = join(process.cwd(), "Public", "uploads");
+const uploadDirectory = join(process.cwd(), "public", "uploads");
 
 function isManagedUpload(image) {
   return typeof image === "string" && image.startsWith("/uploads/") && basename(image) === image.slice("/uploads/".length);

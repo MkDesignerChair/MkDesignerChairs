@@ -22,7 +22,7 @@ export async function GET(request) {
   }
 
   try {
-    const image = await readFile(join(process.cwd(), "Public", "Products", name));
+    const image = await readFile(join(process.cwd(), "public", "Products", name));
 
     return new NextResponse(image, {
       headers: {

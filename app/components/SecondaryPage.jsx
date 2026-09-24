@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import logo from "../../Public/logo.png";
+import logo from "../../public/logo.png";
 import HeaderActions from "./HeaderActions";
 
 export function SiteNavigation({ active, categories = [] }) {

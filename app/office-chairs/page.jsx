@@ -1,4 +1,4 @@
-import officeChair from "../../Public/Products/office chair.jpeg";
+import officeChair from "../../public/Products/office chair.jpeg";
 import ProductCatalog from "../components/ProductCatalog";
 import SecondaryPage from "../components/SecondaryPage";
 import { getProducts } from "../lib/products";

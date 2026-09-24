@@ -1,4 +1,4 @@
-import contactHero from "../../Public/Products/office chair.jpeg";
+import contactHero from "../../public/Products/office chair.jpeg";
 import SecondaryPage from "../components/SecondaryPage";
 import ContactForm from "../components/ContactForm";
 import { getSiteContent } from "../../actions/site-content";

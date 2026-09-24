@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import officeChair from "../../../Public/Products/office chair.jpeg";
-import pinkOfficeChair from "../../../Public/Products/WhatsApp Image 2026-09-12 at 1.09.05 PMasd.jpeg";
-import yellowOfficeChair from "../../../Public/Products/WhatsApp Image 2026-09-12 at 1.09.06 PMdfd.jpeg";
-import blueDiningChair from "../../../Public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
+import officeChair from "../../../public/Products/office chair.jpeg";
+import pinkOfficeChair from "../../../public/Products/WhatsApp Image 2026-09-12 at 1.09.05 PMasd.jpeg";
+import yellowOfficeChair from "../../../public/Products/WhatsApp Image 2026-09-12 at 1.09.06 PMdfd.jpeg";
+import blueDiningChair from "../../../public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
 import AddToCartButton from "../../components/AddToCartButton";
 import BuyNowButton from "../../components/BuyNowButton";
 import ProductImageZoom from "../../components/ProductImageZoom";

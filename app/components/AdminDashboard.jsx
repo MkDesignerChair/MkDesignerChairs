@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductEditor from "./ProductEditor";
 import CategoryEditor from "./CategoryEditor";
-import logo from "../../Public/logo.png";
+import logo from "../../public/logo.png";
 
 const navigation = [
   ["overview", "Overview", "dashboard"],

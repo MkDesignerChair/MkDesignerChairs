@@ -1,4 +1,4 @@
-import aboutHero from "../../Public/banner.jpeg";
+import aboutHero from "../../public/banner.jpeg";
 import SecondaryPage from "../components/SecondaryPage";
 import { getSiteContent } from "../../actions/site-content";
 

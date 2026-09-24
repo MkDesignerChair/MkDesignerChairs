@@ -10,9 +10,9 @@ export const metadata = {
   title: "Designer Chairs | Premium Seating",
   description: "Premium chairs for a better tomorrow.",
   icons: {
-    icon: [{ url: "/logo.png", type: "image/png" }],
-    shortcut: ["/logo.png"],
-    apple: [{ url: "/logo.png", type: "image/png" }],
+    icon: [{ url: "/fevicon.png", type: "image/png" }],
+    shortcut: ["/fevicon.png"],
+    apple: [{ url: "/fevicon.png", type: "image/png" }],
   },
 };
 

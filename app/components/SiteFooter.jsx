@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import logo from "../../Public/logo.png";
+import logo from "../../public/logo.png";
 
 function SocialIcon({ name }) {
   const icons = {

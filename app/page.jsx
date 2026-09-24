@@ -1,8 +1,8 @@
 import Image from "next/image";
-import banner from "../Public/banner.jpeg";
-import logo from "../Public/logo.png";
-import officeCollection from "../Public/upgrade your space.jpeg";
-import blueDiningChair from "../Public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
+import banner from "../public/banner.jpeg";
+import logo from "../public/logo.png";
+import officeCollection from "../public/upgrade your space.jpeg";
+import blueDiningChair from "../public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
 import AddToCartButton from "./components/AddToCartButton";
 import BuyNowButton from "./components/BuyNowButton";
 import HeaderActions from "./components/HeaderActions";

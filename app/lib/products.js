@@ -20,7 +20,7 @@ function formatProductName(filename, index) {
 }
 
 async function getCatalogProducts() {
-  const filenames = (await readdir(join(process.cwd(), "Public", "Products"))).filter((filename) => /\.(jpe?g|png)$/i.test(filename)).sort();
+  const filenames = (await readdir(join(process.cwd(), "public", "Products"))).filter((filename) => /\.(jpe?g|png)$/i.test(filename)).sort();
   const [overrides, categories] = await Promise.all([getCatalogOverrides(), getCategories()]);
   const fallbackCategory = categories[0];
 

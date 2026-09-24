@@ -737,6 +737,7 @@ img { display: block; max-width: 100%; }
 @media (max-width: 1100px) { .admin-hero-images { grid-template-columns: 1fr; } .admin-hero-image-card { align-items: stretch; display: grid; grid-template-columns: minmax(190px, .8fr) minmax(0, 1fr); } .admin-hero-image-card > img { aspect-ratio: auto; height: 100%; min-height: 180px; } }
 @media (max-width: 800px) { .admin-editor-grid { grid-template-columns: 1fr; } .admin-editor-two { grid-template-columns: 1fr; } }
 .admin-message { background: rgba(49,78,55,.5); border: 1px solid rgba(157,220,169,.25); border-radius: 7px; color: #b9ebc1; font-size: 13px; font-weight: 700; margin: -13px 0 19px; padding: 11px 13px; }
+.admin-category-message { margin: 18px 0 0; }
 .admin-empty { align-items: center; background: #171815; border: 1px dashed rgba(224,190,127,.28); border-radius: 13px; display: flex; flex-direction: column; justify-content: center; min-height: 295px; padding: 35px; text-align: center; }
 .admin-empty > span { color: #e0bb78; font-size: 34px; }
 .admin-empty h2 { color: #f1ece3; font-size: 20px; margin: 13px 0 9px; }
