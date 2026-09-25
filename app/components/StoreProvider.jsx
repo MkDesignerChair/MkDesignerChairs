@@ -5,17 +5,29 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 const CartContext = createContext(null);
 const STORAGE_KEY = "mk-designer-chairs-cart";
 
+function isStoredCartItem(value) {
+  return value && typeof value === "object" && typeof value.id === "string" && typeof value.image === "string" && typeof value.name === "string" && Number.isFinite(value.price) && value.price >= 0 && Number.isInteger(value.quantity) && value.quantity > 0;
+}
+
+function readStoredCart() {
+  try {
+    const value = window.localStorage.getItem(STORAGE_KEY);
+    if (!value) return [];
+
+    const parsedItems = JSON.parse(value);
+    return Array.isArray(parsedItems) ? parsedItems.filter(isStoredCartItem) : [];
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    return [];
+  }
+}
+
 export function StoreProvider({ children }) {
   const [items, setItems] = useState([]);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const storedItems = window.localStorage.getItem(STORAGE_KEY);
-
-    if (storedItems) {
-      setItems(JSON.parse(storedItems));
-    }
-
+    setItems(readStoredCart());
     setIsReady(true);
   }, []);
 
@@ -52,9 +64,13 @@ export function StoreProvider({ children }) {
     removeItem(productId) {
       setItems((currentItems) => currentItems.filter((item) => item.id !== productId));
     },
+    clearCart() {
+      setItems([]);
+    },
     items,
+    isReady,
     totalItems: items.reduce((total, item) => total + item.quantity, 0),
-  }), [items]);
+  }), [isReady, items]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

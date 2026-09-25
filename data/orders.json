@@ -1,0 +1,89 @@
+[
+  {
+    "id": "order-20260918-1042",
+    "orderNumber": "MK-1042",
+    "customer": {
+      "name": "Aarav Sharma",
+      "email": "aarav.sharma@example.com",
+      "phone": "+91 98765 43210"
+    },
+    "items": [
+      {
+        "name": "Executive Office Chair",
+        "quantity": 1,
+        "unitPrice": 10999
+      },
+      {
+        "name": "Signature Chair 03",
+        "quantity": 2,
+        "unitPrice": 8749
+      }
+    ],
+    "subtotal": 28497,
+    "shippingCost": 0,
+    "totalAmount": 28497,
+    "createdAt": "2026-09-18T08:40:00.000Z",
+    "payment": {
+      "method": "Online Payment (Razorpay)",
+      "status": "Paid",
+      "transactionId": "pay_RZP8K42M"
+    },
+    "status": "packed",
+    "timeline": {
+      "placed": "2026-09-18T08:40:00.000Z",
+      "confirmed": "2026-09-18T09:10:00.000Z",
+      "packed": "2026-09-18T15:25:00.000Z"
+    },
+    "shipping": {
+      "addressLine1": "42 Green Park",
+      "addressLine2": "Near City Centre",
+      "city": "Bhubaneswar",
+      "state": "Odisha",
+      "postalCode": "751024",
+      "courier": "Not assigned",
+      "trackingNumber": "Not assigned",
+      "estimatedDeliveryDate": ""
+    }
+  },
+  {
+    "id": "order-20260917-1041",
+    "orderNumber": "MK-1041",
+    "customer": {
+      "name": "Priya Nair",
+      "email": "priya.nair@example.com",
+      "phone": "+91 99887 22110"
+    },
+    "items": [
+      {
+        "name": "Signature Chair 07",
+        "quantity": 1,
+        "unitPrice": 9499
+      }
+    ],
+    "subtotal": 9499,
+    "shippingCost": 99,
+    "totalAmount": 9598,
+    "createdAt": "2026-09-17T11:15:00.000Z",
+    "payment": {
+      "method": "Cash on Delivery",
+      "status": "Pending",
+      "transactionId": "—"
+    },
+    "status": "packed",
+    "timeline": {
+      "placed": "2026-09-17T11:15:00.000Z",
+      "confirmed": "2026-09-17T13:05:00.000Z",
+      "packed": "2026-09-18T10:30:00.000Z"
+    },
+    "shipping": {
+      "addressLine1": "18 Lake View Road",
+      "addressLine2": "Apartment 6B",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "postalCode": "700029",
+      "courier": "Not assigned",
+      "trackingNumber": "Not assigned",
+      "estimatedDeliveryDate": ""
+    }
+  }
+]

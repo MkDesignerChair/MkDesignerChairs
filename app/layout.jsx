@@ -3,6 +3,8 @@ import SiteFooter from "./components/SiteFooter";
 import { StoreProvider } from "./components/StoreProvider";
 import StorefrontNavigation from "./components/StorefrontNavigation";
 import { getCategories } from "../actions/category-catalog";
+import { getSiteContent } from "../actions/site-content";
+import StoreStatusNotice from "./components/StoreStatusNotice";
 
 export const dynamic = "force-dynamic";
 
@@ -17,11 +19,11 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const categories = await getCategories();
+  const [categories, content] = await Promise.all([getCategories(), getSiteContent()]);
 
   return (
     <html lang="en">
-      <body><StoreProvider><StorefrontNavigation categories={categories} />{children}<SiteFooter /></StoreProvider></body>
+      <body><StoreProvider><StorefrontNavigation categories={categories} /><StoreStatusNotice settings={content.settings} />{children}<SiteFooter settings={content.settings} /></StoreProvider></body>
     </html>
   );
 }

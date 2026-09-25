@@ -1,0 +1,35 @@
+[
+  {
+    "id": "review-rahul-mehta",
+    "customerName": "Rahul Mehta",
+    "customerRole": "Business Owner",
+    "productName": "Executive Office Chair",
+    "rating": 5,
+    "reviewText": "Excellent quality and very comfortable. Perfect for my office setup!",
+    "isApproved": true,
+    "isFeatured": true,
+    "createdAt": "2026-09-01T09:00:00.000Z"
+  },
+  {
+    "id": "review-priya-sharma",
+    "customerName": "Priya Sharma",
+    "customerRole": "Homeowner",
+    "productName": "Dining Chair Collection",
+    "rating": 5,
+    "reviewText": "Stylish and sturdy chairs. My dining area looks amazing now!",
+    "isApproved": true,
+    "isFeatured": true,
+    "createdAt": "2026-09-03T09:00:00.000Z"
+  },
+  {
+    "id": "review-amit-verma",
+    "customerName": "Amit Verma",
+    "customerRole": "Restaurant Owner",
+    "productName": "Premium Dining Chairs",
+    "rating": 5,
+    "reviewText": "Great design, premium finish and superb customer service.",
+    "isApproved": true,
+    "isFeatured": true,
+    "createdAt": "2026-09-05T09:00:00.000Z"
+  }
+]

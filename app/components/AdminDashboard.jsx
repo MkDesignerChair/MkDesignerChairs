@@ -6,6 +6,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductEditor from "./ProductEditor";
 import CategoryEditor from "./CategoryEditor";
+import HomepageContentEditor from "./HomepageContentEditor";
+import ReviewsManager from "./ReviewsManager";
+import OrdersManager from "./OrdersManager";
+import CustomersManager from "./CustomersManager";
+import EnquiriesManager from "./EnquiriesManager";
+import StoreSettingsManager from "./StoreSettingsManager";
+import AboutPageEditor from "./AboutPageEditor";
+import OverviewDashboard from "./OverviewDashboard";
 import logo from "../../public/logo.png";
 
 const navigation = [
@@ -19,7 +27,6 @@ const navigation = [
   ["hero", "Hero Section", "hero"],
   ["content", "Homepage Content", "content"],
   ["about", "About Page", "about"],
-  ["media", "Media Library", "media"],
   ["settings", "Store Settings", "settings"],
 ];
 const validSections = new Set(navigation.map(([id]) => id));
@@ -37,7 +44,6 @@ function AdminNavIcon({ name }) {
     hero: <><rect x="3.5" y="4.5" width="17" height="15" rx="2" /><circle cx="8.2" cy="9" r="1.5" /><path d="m5.5 17 4.3-4 3.1 2.7 2.2-2 3.3 3.3" /></>,
     content: <><rect x="3.5" y="4" width="17" height="16" rx="2" /><path d="M3.5 8.5h17M8.5 8.5V20M12 11.5h5M12 14.5h5M12 17.5h3" /></>,
     about: <><circle cx="12" cy="12" r="8.5" /><path d="M12 10.5v5M12 7.5h.01" /></>,
-    media: <><rect x="3.5" y="5" width="13.5" height="13.5" rx="1.5" /><path d="m5.5 16 3.6-3.7 2.5 2.2 2-1.8 3.4 3.3" /><circle cx="8" cy="9" r="1.2" /><path d="M17 8h3.5v11.5H9" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.2 14.7 21 16l-2 3.4-2-1a7.9 7.9 0 0 1-2 .9l-.3 2.2h-4l-.3-2.2a7.9 7.9 0 0 1-2-.9l-2 1L4.1 16l1.8-1.3a7.7 7.7 0 0 1 0-2.4L4.1 11l2-3.4 2 1a7.9 7.9 0 0 1 2-.9l.3-2.2h4l.3 2.2a7.9 7.9 0 0 1 2 .9l2-1 2 3.4-1.8 1.3a7.7 7.7 0 0 1 0 2.4Z" /></>,
   };
 
@@ -48,7 +54,7 @@ function formatPrice(price) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
-export default function AdminDashboard({ adminEmail, categories, products, siteContent }) {
+export default function AdminDashboard({ adminEmail, categories, customers, inquiries, orders, products, reviews, siteContent }) {
   const [catalog, setCatalog] = useState(products);
   const [categoryList, setCategoryList] = useState(categories);
   const [message, setMessage] = useState("");
@@ -222,6 +228,7 @@ export default function AdminDashboard({ adminEmail, categories, products, siteC
   }
 
   function renderOverview() {
+    return <OverviewDashboard customers={customers} inquiries={inquiries} onNavigate={setActiveSection} orders={orders} products={catalog} reviews={reviews} />;
     return <><div className="admin-page-heading"><div><p className="admin-kicker">MK DESIGNER CHAIRS</p><h1>Overview</h1><p>Manage the seating catalog and monitor your storefront.</p></div><Link className="admin-site-link" href="/" target="_blank">↗ View store</Link></div><div className="admin-stats"><article><span>₹</span><strong>{formatPrice(activeProducts.reduce((total, product) => total + product.price, 0))}</strong><small>Catalog value</small></article><article><span>◇</span><strong>{activeProducts.length}</strong><small>Active chair designs</small></article><article><span>▦</span><strong>{categoryList.length}</strong><small>Chair categories</small></article><article><span>□</span><strong>0</strong><small>Confirmed orders</small></article></div><section className="admin-panel"><div className="admin-panel-heading"><div><span>◷</span><h2>Catalog snapshot</h2></div><button type="button" onClick={() => setActiveSection("products")}>Manage products</button></div><div className="admin-table"><div className="admin-table-head"><span>PRODUCT</span><span>CATEGORY</span><span>PRICE</span><span>STATUS</span></div>{catalog.slice(0, 6).map((product) => <div className="admin-product-row" key={product.id}><span className="admin-product-name"><img src={product.image} alt="" /><b>{product.name}</b></span><span>{product.category}</span><strong>{formatPrice(product.price)}</strong><span className={product.isActive !== false ? "admin-status" : "admin-status admin-status-off"}>{product.isActive !== false ? "Active" : "Hidden"}</span></div>)}</div></section></>;
   }
 
@@ -231,14 +238,38 @@ export default function AdminDashboard({ adminEmail, categories, products, siteC
     return <><div className="admin-page-heading"><div><p className="admin-kicker">CATALOG STRUCTURE</p><h1>Chair Categories</h1><p>Manage category names, links, imagery, and homepage placement from one source.</p></div></div><section className="admin-panel"><div className="admin-table"><div className="admin-table-head"><span>CATEGORY</span><span>SLUG</span><span>PRODUCTS</span><span>ACTIONS</span></div>{categoryList.map((category) => <div className="admin-product-row" key={category.id}><strong>{category.name}</strong><code>{category.slug}</code><span>{catalog.filter((product) => product.categoryId === category.id).length} chairs{category.featured && <small className="admin-featured-category">Featured</small>}</span><button className="admin-inline-link admin-category-edit" type="button" onClick={() => setEditingCategoryId(category.id)}>Edit</button></div>)}</div></section><p className="admin-note">Editing a category updates product choices, filters, storefront links, and featured spaces. Deleting a category safely moves its products to the remaining fallback category.</p></>;
   }
 
+  function renderReviews() {
+    return <ReviewsManager initialReviews={reviews} />;
+  }
+
+  function renderOrders() {
+    return <OrdersManager initialOrders={orders} />;
+  }
+
+  function renderCustomers() {
+    return <CustomersManager initialCustomers={customers} />;
+  }
+
+  function renderInquiries() {
+    return <EnquiriesManager initialInquiries={inquiries} />;
+  }
+
+  function renderStoreSettings() {
+    return <StoreSettingsManager initialSettings={content.settings} onSaved={(settings) => setContent((current) => ({ ...current, settings }))} />;
+  }
+
+  function renderAboutEditor() {
+    return <AboutPageEditor about={content.about} onSaved={(about) => setContent((current) => ({ ...current, about }))} onSectionChange={(about) => setContent((current) => ({ ...current, about }))} />;
+  }
+
   function renderHeroEditor() {
     const images = [
-      { field: "heroImage", label: "Main hero image", hint: "Used across the homepage hero on desktop and mobile.", fallback: "/banner.jpeg" },
-      { field: "officeCollectionImage", label: "Office Chairs image", hint: "Used in the Office Chairs collection card.", fallback: "/Products/office%20chair.jpeg" },
-      { field: "diningCollectionImage", label: "Dining Chairs image", hint: "Used in the Dining Chairs collection card.", fallback: "/Dinning%20Chair.jpeg" },
+      { field: "heroImage", label: "Main hero image", hint: "Used across the homepage hero on desktop and mobile.", fallback: "/banner.jpeg", ratio: "16:9", dimensions: "1920 × 1080 px" },
+      { field: "officeCollectionImage", label: "Office Chairs image", hint: "Used in the Office Chairs collection card.", fallback: "/Products/office%20chair.jpeg", ratio: "4:3", dimensions: "1200 × 900 px" },
+      { field: "diningCollectionImage", label: "Dining Chairs image", hint: "Used in the Dining Chairs collection card.", fallback: "/Dinning%20Chair.jpeg", ratio: "4:3", dimensions: "1200 × 900 px" },
     ];
 
-    return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>Hero Section</h1><p>Update the homepage introduction, collection messages, and imagery without changing its design.</p></div><Link className="admin-site-link" href="/" target="_blank">↗ Preview page</Link></div>{message && <p className="admin-message" role="status">{message}</p>}<form className="admin-hero-form" onSubmit={saveHeroContent}><section className="admin-editor-card"><div><h2>Hero copy</h2><p className="admin-editor-hint">Text updates are published to the storefront when you save.</p></div><label>Eyebrow<input value={content.hero.eyebrow} onChange={(event) => updateHeroField("eyebrow", event.target.value)} /></label><div className="admin-editor-two"><label>Headline line one<input value={content.hero.title} onChange={(event) => updateHeroField("title", event.target.value)} /></label><label>Headline line two<input value={content.hero.accent} onChange={(event) => updateHeroField("accent", event.target.value)} /></label></div><label>Description<textarea rows="4" value={content.hero.description} onChange={(event) => updateHeroField("description", event.target.value)} /></label><div className="admin-editor-two"><label>Office Chairs message<input value={content.hero.officeCollectionDescription} onChange={(event) => updateHeroField("officeCollectionDescription", event.target.value)} /></label><label>Dining Chairs message<input value={content.hero.diningCollectionDescription} onChange={(event) => updateHeroField("diningCollectionDescription", event.target.value)} /></label></div><button className="admin-save-product" disabled={isHeroSaving} type="submit">{isHeroSaving ? "Saving…" : "Save hero content"}</button></section></form><section className="admin-hero-images" aria-label="Hero image management">{images.map(({ field, label, hint, fallback }) => { const image = content.hero[field] || fallback; const isUploading = imageAction === field; const isUploadedImage = content.hero[field]?.startsWith("/uploads/"); return <article className="admin-hero-image-card" key={field}><img src={image} alt={`${label} preview`} /><div className="admin-hero-image-copy"><div><h2>{label}</h2><p>{hint}</p></div><div className="admin-hero-image-actions"><label className="admin-file-input">{isUploading ? "Uploading…" : isUploadedImage ? "Replace image" : "Upload image"}<input accept="image/jpeg,image/png,image/webp" disabled={isUploading} type="file" onChange={(event) => { uploadHeroImage(field, event.target.files?.[0]); event.target.value = ""; }} /></label>{isUploadedImage && <button className="admin-delete-image" disabled={isUploading} type="button" onClick={() => removeHeroImage(field)}>Delete image</button>}</div></div></article>; })}</section><p className="admin-note">Upload JPG, PNG, or WEBP files up to 5 MB. Deleting an uploaded image safely restores the original storefront image.</p></>;
+    return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>Hero Section</h1><p>Update the homepage introduction, collection messages, and imagery without changing its design.</p></div><Link className="admin-site-link" href="/" target="_blank">↗ Preview page</Link></div>{message && <p className="admin-message" role="status">{message}</p>}<form className="admin-hero-form" onSubmit={saveHeroContent}><section className="admin-editor-card"><div><h2>Hero copy</h2><p className="admin-editor-hint">Text updates are published to the storefront when you save.</p></div><label>Eyebrow<input value={content.hero.eyebrow} onChange={(event) => updateHeroField("eyebrow", event.target.value)} /></label><div className="admin-editor-two"><label>Headline line one<input value={content.hero.title} onChange={(event) => updateHeroField("title", event.target.value)} /></label><label>Headline line two<input value={content.hero.accent} onChange={(event) => updateHeroField("accent", event.target.value)} /></label></div><label>Description<textarea rows="4" value={content.hero.description} onChange={(event) => updateHeroField("description", event.target.value)} /></label><div className="admin-editor-two"><label>Office Chairs message<input value={content.hero.officeCollectionDescription} onChange={(event) => updateHeroField("officeCollectionDescription", event.target.value)} /></label><label>Dining Chairs message<input value={content.hero.diningCollectionDescription} onChange={(event) => updateHeroField("diningCollectionDescription", event.target.value)} /></label></div><button className="admin-save-product" disabled={isHeroSaving} type="submit">{isHeroSaving ? "Saving…" : "Save hero content"}</button></section></form><section className="admin-hero-images" aria-label="Hero image management">{images.map(({ field, label, hint, fallback, ratio, dimensions }) => { const image = content.hero[field] || fallback; const isUploading = imageAction === field; const isUploadedImage = content.hero[field]?.startsWith("/uploads/"); return <article className="admin-hero-image-card" key={field}><img src={image} alt={`${label} preview`} /><div className="admin-hero-image-copy"><div><h2>{label}</h2><p>{hint}</p></div><div className="admin-hero-image-actions"><label className="admin-file-input">{isUploading ? "Uploading…" : isUploadedImage ? "Replace image" : "Upload image"}<input accept="image/jpeg,image/png,image/webp" disabled={isUploading} type="file" onChange={(event) => { uploadHeroImage(field, event.target.files?.[0]); event.target.value = ""; }} /></label>{isUploadedImage && <button className="admin-delete-image" disabled={isUploading} type="button" onClick={() => removeHeroImage(field)}>Delete image</button>}</div><p className="admin-hero-image-spec"><strong>Recommended:</strong> {ratio} · {dimensions}<br />JPG, PNG, or WEBP · maximum 5 MB</p></div></article>; })}</section><p className="admin-note">Deleting an uploaded image safely restores the original storefront image.</p></>;
   }
 
   function renderProducts() {
@@ -246,6 +277,10 @@ export default function AdminDashboard({ adminEmail, categories, products, siteC
     if (editingProduct) return <ProductEditor categories={categoryList} product={editingProduct} onClose={() => setEditingProductId(null)} onSaved={(savedProduct) => { const category = categoryList.find((item) => item.id === savedProduct.categoryId); setCatalog((current) => current.map((product) => product.id === savedProduct.id ? { ...savedProduct, category: category?.name || savedProduct.category, categorySlug: category?.slug || savedProduct.categorySlug } : product)); }} />;
 
     return <><div className="admin-page-heading"><div><p className="admin-kicker">CHAIR CATALOG</p><h1>Products</h1><p>Edit product name, price, category, storefront visibility, and chair specifications.</p></div><label className="admin-search">⌕<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search chairs" /></label></div>{message && <p className="admin-message" role="status">{message}</p>}<section className="admin-panel"><div className="admin-table admin-product-table"><div className="admin-table-head"><span>PRODUCT</span><span>CATEGORY</span><span>PRICE</span><span>STATUS</span></div>{visibleProducts.map((product) => <div className="admin-product-row" key={product.id}><span className="admin-product-name"><img src={product.image} alt="" /><input aria-label={`Name for ${product.name}`} value={product.name} onChange={(event) => setCatalog((current) => current.map((item) => item.id === product.id ? { ...item, name: event.target.value } : item))} onBlur={(event) => saveProduct(product.id, { name: event.target.value })} /></span><select aria-label={`Category for ${product.name}`} value={product.categoryId} onChange={(event) => saveProduct(product.id, { categoryId: event.target.value })}>{categoryList.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><label className="admin-price"><span>₹</span><input aria-label={`Price for ${product.name}`} min="1" type="number" value={product.price} onChange={(event) => setCatalog((current) => current.map((item) => item.id === product.id ? { ...item, price: Number(event.target.value) } : item))} onBlur={(event) => saveProduct(product.id, { price: Number(event.target.value) })} /></label><span className="admin-product-actions"><button className={product.isActive !== false ? "admin-status admin-status-button" : "admin-status admin-status-off admin-status-button"} disabled={isSaving} type="button" onClick={() => saveProduct(product.id, { isActive: product.isActive === false })}>{product.isActive !== false ? "Active" : "Hidden"}</button><button type="button" onClick={() => editChairDetails(product)}>Details</button><label className="admin-image-upload">Image<input accept="image/jpeg,image/png,image/webp" disabled={isSaving} type="file" onChange={(event) => replaceProductImage(product, event.target.files?.[0])} /></label></span></div>)}</div></section><p className="admin-note">Details include upholstery, finishes, dimensions, weight capacity, warranty, stock, FAQs, and SEO metadata. Upload a JPG, PNG, or WEBP image (up to 5 MB) directly from each product row.</p></>;
+  }
+
+  function renderHomepageContent() {
+    return <HomepageContentEditor content={content} onContentSaved={(section, savedContent) => setContent((current) => ({ ...current, [section]: savedContent }))} onSectionChange={(section, nextSection) => setContent((current) => ({ ...current, [section]: nextSection }))} />;
   }
 
   function renderPlaceholder(title, description) {
@@ -256,7 +291,6 @@ export default function AdminDashboard({ adminEmail, categories, products, siteC
     const content = {
       content: { title: "Homepage Content", description: "Review the key chair-store sections used on the homepage.", cards: [["Collections", "Office & Dining Chair Collections", "Collection cards link to the dedicated filtered catalog pages."], ["Campaign", "Comfort Meets Class", "Promotion asset: Public/upgrade your space.jpeg"], ["Trust badges", "Quality, Ergonomic Design, Built To Last", "Benefits appear beneath the hero on the storefront."]] },
       about: { title: "About Page", description: "Review brand messaging and craftsmanship content.", cards: [["Brand promise", "Comfort Meets Class", "About page copy is defined in app/about/page.jsx."], ["Craftsmanship", "Premium materials and thoughtful ergonomics", "Use this section to keep brand values consistent."], ["Contact", "Customer support information", "Contact details are defined in app/contact/page.jsx."]] },
-      media: { title: "Media Library", description: "Inventory the storefront image assets used across the chair catalog.", cards: [["Product media", `${catalog.length} chair images`, "Product photos are stored in Public/Products."], ["Homepage media", "Hero and collection images", "Assets are stored in Public/ for fast local delivery."], ["Catalog updates", "Add chair photography", "Add an image to Public/Products, then update its product details in Products."]] },
       settings: { title: "Store Settings", description: "Review the operational settings for MK Designer Chairs.", cards: [["Store identity", "MK Designer Chairs", "Brand name, colors, and navigation are maintained in the application layout."], ["Admin access", "Environment-protected login", "Admin credentials and session secret are configured in .env."], ["Shipping & checkout", "Not connected", "The current storefront uses a local browser cart; connect a payment and shipping provider before accepting live orders."]] },
     }[section];
 
@@ -265,7 +299,7 @@ export default function AdminDashboard({ adminEmail, categories, products, siteC
     return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>{content.title}</h1><p>{content.description}</p></div><span className="admin-content-actions">{canEdit && <button className="admin-site-link" type="button" onClick={() => editLiveContent(editableSection)}>Edit live content</button>}<Link className="admin-site-link" href={section === "about" ? "/about" : "/"} target="_blank">↗ Preview page</Link></span></div><div className="admin-content-grid">{content.cards.map(([label, heading, description]) => <article key={label}><span>{label}</span><h2>{heading}</h2><p>{description}</p></article>)}</div><p className="admin-note">Live edits are stored locally and used by public pages on their next request.</p></>;
   }
 
-  const body = activeSection === "overview" ? renderOverview() : activeSection === "categories" ? renderCategories() : activeSection === "products" ? renderProducts() : activeSection === "hero" ? renderHeroEditor() : ["content", "about", "media", "settings"].includes(activeSection) ? renderContent(activeSection) : renderPlaceholder(activeSection === "orders" ? "Orders" : activeSection === "customers" ? "Customers" : activeSection === "reviews" ? "Reviews" : "Enquiries", activeSection === "orders" ? "Track payments, fulfillment, and delivery status." : activeSection === "customers" ? "Manage customer profiles and account access." : activeSection === "reviews" ? "Moderate shopper feedback for each chair." : "Review messages submitted through the contact page.");
+  const body = activeSection === "overview" ? renderOverview() : activeSection === "categories" ? renderCategories() : activeSection === "products" ? renderProducts() : activeSection === "orders" ? renderOrders() : activeSection === "customers" ? renderCustomers() : activeSection === "reviews" ? renderReviews() : activeSection === "inquiries" ? renderInquiries() : activeSection === "hero" ? renderHeroEditor() : activeSection === "content" ? renderHomepageContent() : activeSection === "settings" ? renderStoreSettings() : activeSection === "about" ? renderAboutEditor() : renderPlaceholder("Unavailable", "This admin section is not available.");
 
   return <main className="admin-app"><aside className="admin-sidebar"><Link className="admin-brand" href="/"><Image src={logo} alt="MK Designer Chairs" priority /><b>MK Designer Chairs<small>Admin Panel</small></b></Link><nav aria-label="Admin navigation">{navigation.map(([id, label, icon]) => <button className={activeSection === id ? "active" : ""} key={id} type="button" onClick={() => setActiveSection(id)}><AdminNavIcon name={icon} />{label}</button>)}</nav><Link className="admin-sidebar-site" href="/" target="_blank">↗ Visit storefront</Link></aside><section className="admin-workspace"><header className="admin-topbar"><p>Admin Dashboard</p><div><span>{adminEmail}</span><button type="button" onClick={logout}>⇥ Logout</button></div></header><div className="admin-content">{body}</div></section></main>;
 }

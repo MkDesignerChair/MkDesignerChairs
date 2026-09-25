@@ -1,0 +1,18 @@
+[
+  {
+    "id": "customer-aarav-sharma",
+    "name": "Aarav Sharma",
+    "email": "aarav.sharma@example.com",
+    "phone": "+91 98765 43210",
+    "status": "active",
+    "registeredAt": "2026-09-12T09:30:00.000Z"
+  },
+  {
+    "id": "customer-priya-nair",
+    "name": "Priya Nair",
+    "email": "priya.nair@example.com",
+    "phone": "+91 99887 22110",
+    "status": "active",
+    "registeredAt": "2026-09-14T12:10:00.000Z"
+  }
+]

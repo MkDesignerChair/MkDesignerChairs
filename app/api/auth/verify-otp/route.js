@@ -1,5 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { createCustomerFromRegistration, getCustomerByEmail } from "../../../../actions/customer-store";
+import { createCustomerSession, CUSTOMER_SESSION_COOKIE } from "../../../lib/customer-auth";
 
 const OTP_COOKIE = "mk_designer_chairs_otp";
 
@@ -45,11 +47,16 @@ export async function POST(request) {
     return NextResponse.json({ error: "The code is incorrect or has expired." }, { status: 400 });
   }
 
-  const sessionPayload = JSON.stringify({ email: normalizedEmail, expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 });
-  const sessionValue = Buffer.from(`${sessionPayload}.${sign(sessionPayload, secret)}`).toString("base64url");
+  const customer = verification.name
+    ? await createCustomerFromRegistration(normalizedEmail, verification.name)
+    : await getCustomerByEmail(normalizedEmail);
+  if (!customer || customer.status !== "active") {
+    return NextResponse.json({ error: "User does not exist. Please create an account first." }, { status: 404 });
+  }
+
   const response = NextResponse.json({ message: "You are signed in." });
   response.cookies.set(OTP_COOKIE, "", { expires: new Date(0), path: "/" });
-  response.cookies.set("mk_designer_chairs_session", sessionValue, { httpOnly: true, maxAge: 7 * 24 * 60 * 60, path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+  response.cookies.set(CUSTOMER_SESSION_COOKIE, createCustomerSession(normalizedEmail, customer.name), { httpOnly: true, maxAge: 7 * 24 * 60 * 60, path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" });
 
   return response;
 }

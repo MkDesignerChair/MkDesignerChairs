@@ -6,10 +6,12 @@ import blueDiningChair from "../public/Products/WhatsApp Image 2026-09-12 at 1.0
 import AddToCartButton from "./components/AddToCartButton";
 import BuyNowButton from "./components/BuyNowButton";
 import HeaderActions from "./components/HeaderActions";
+import TestimonialsCarousel from "./components/TestimonialsCarousel";
 import Link from "next/link";
 import { getSiteContent } from "./../actions/site-content";
 import { getProducts } from "./lib/products";
 import { getCategories } from "../actions/category-catalog";
+import { getFeaturedReviews } from "../actions/review-store";
 
 export const dynamic = "force-dynamic";
 
@@ -85,8 +87,8 @@ function ProductCard({ image, name, price, centered }) {
   return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><button className="add-cart" aria-label={`Add ${name} to cart`}><CartIcon /></button></div></article>;
 }
 
-function SpaceCard({ image, title, href }) {
-  return <a className="space-card" href={href}><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label"><span>{title}</span><span className="space-card-view">View more</span></span></a>;
+function SpaceCard({ image, title, href, actionLabel }) {
+  return <a className="space-card" href={href}><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label"><span>{title}</span><span className="space-card-view">{actionLabel}</span></span></a>;
 }
 
 function DetailPoint({ icon, children }) {
@@ -105,12 +107,8 @@ function LayersIcon() {
   return <svg viewBox="0 0 32 32" aria-hidden="true"><path d="m16 4 12 6-12 6L4 10zM4 16l12 6 12-6M4 22l12 6 12-6" /></svg>;
 }
 
-function Testimonial({ name, role, initials, quote }) {
-  return <article className="testimonial-card"><span className="quote-mark">“</span><p>{quote}</p><span className="stars" aria-label="5 out of 5 stars">★★★★★</span><div className="customer"><span className="avatar">{initials}</span><span><strong>{name}</strong><small>{role}</small></span></div></article>;
-}
-
 export default async function Home() {
-  const [content, products, categories] = await Promise.all([getSiteContent(), getProducts(), getCategories()]);
+  const [content, products, categories, featuredReviews] = await Promise.all([getSiteContent(), getProducts(), getCategories(), getFeaturedReviews()]);
   const featuredProducts = products.filter((product) => product.featured === true);
   const featuredCategories = categories.filter((category) => category.featured);
   const officeCategory = categories.find((category) => category.id === "office");
@@ -191,21 +189,21 @@ export default async function Home() {
       </section>
 
       <section className="spaces section-shell" id="dining-chairs">
-        <div className="spaces-copy"><h2>Designed for<br />Every Space</h2><p>From modern offices to luxurious dining rooms, our chairs blend comfort with contemporary design to elevate your environment.</p><a className="gold-button" href="#quote">Explore Spaces</a></div>
+        <div className="spaces-copy"><h2>{content.spaces.title}<br />{content.spaces.titleSecondLine}</h2><p>{content.spaces.description}</p><a className="gold-button" href="#quote">{content.spaces.buttonText}</a></div>
         <div className="space-grid">
-          {featuredCategories.map((category) => <SpaceCard image={category.image || category.defaultImage || "/placeholder.png"} key={category.id} title={category.name} href={`/shop?category=${encodeURIComponent(category.slug)}`} />)}
+          {featuredCategories.map((category, index) => <SpaceCard actionLabel={content.spaces.cardActionLabel} image={index === 0 && content.spaces.image ? content.spaces.image : category.image || category.defaultImage || "/placeholder.png"} key={category.id} title={category.name} href={`/shop?category=${encodeURIComponent(category.slug)}`} />)}
         </div>
       </section>
 
       <section className="craftsmanship" aria-label="Craftsmanship details">
-        <div className="craft-image"><Image src={blueDiningChair} alt="Blue velvet dining chair detail" fill sizes="(max-width: 760px) 100vw, 50vw" /></div>
-        <div className="craft-copy"><h2>Details Make<br />the Difference</h2><p>Premium fabrics, fine stitching and ergonomic design come together to create chairs that stand out.</p><a className="gold-button" href="#quote">Get a Quote</a></div>
-        <div className="craft-points"><ul><DetailPoint icon={<CrownIcon />}>Premium<br />Quality Materials</DetailPoint><DetailPoint icon={<ToolsIcon />}>Expert<br />Craftsmanship</DetailPoint><DetailPoint icon={<LayersIcon />}>Stylish &<br />Modern Designs</DetailPoint><DetailPoint icon={<LeafIcon />}>Comfort for<br />Long Hours</DetailPoint></ul><div className="comfort-detail"><Image src={banner} alt="Fine chair stitching detail" fill sizes="(max-width: 760px) 80vw, 25vw" /><span>COMFORT<br />IN EVERY DETAIL</span></div></div>
+        <div className="craft-image"><Image src={content.details.image || blueDiningChair} alt="Chair craftsmanship detail" fill sizes="(max-width: 760px) 100vw, 50vw" /></div>
+        <div className="craft-copy"><h2>{content.details.title}<br />{content.details.titleSecondLine}</h2><p>{content.details.description}</p><a className="gold-button" href="#quote">{content.details.buttonText}</a></div>
+        <div className="craft-points"><ul><DetailPoint icon={<CrownIcon />}>{content.comfort.pointOne}</DetailPoint><DetailPoint icon={<ToolsIcon />}>{content.comfort.pointTwo}</DetailPoint><DetailPoint icon={<LayersIcon />}>{content.comfort.pointThree}</DetailPoint><DetailPoint icon={<LeafIcon />}>{content.comfort.pointFour}</DetailPoint></ul><div className="comfort-detail"><Image src={content.comfort.image || banner} alt="Fine chair stitching detail" fill sizes="(max-width: 760px) 80vw, 25vw" /><span>{content.comfort.label}</span></div></div>
       </section>
 
-      <section className="upgrade-offer" id="quote"><Image src={officeCollection} alt="Luxury dining space" fill sizes="100vw" /><div className="upgrade-shade" /><div className="upgrade-copy"><p className="eyebrow">{content.campaign.eyebrow}</p><h2>{content.campaign.title}</h2><p>{content.campaign.description}</p><a className="gold-button" href={`mailto:${content.campaign.email}`}>{content.campaign.buttonText}</a></div><span className="offer-badge">PREMIUM<br />CHAIRS FOR<br />PREMIUM<br />SPACES</span></section>
+      <section className="upgrade-offer" id="quote"><Image src={content.campaign.image || officeCollection} alt="Luxury dining space" fill sizes="100vw" /><div className="upgrade-shade" /><div className="upgrade-copy"><p className="eyebrow">{content.campaign.eyebrow}</p><h2>{content.campaign.title}</h2><p>{content.campaign.description}</p><a className="gold-button" href={`mailto:${content.campaign.email}`}>{content.campaign.buttonText}</a></div></section>
 
-      <section className="testimonials section-shell" aria-labelledby="testimonial-title"><p className="eyebrow">TESTIMONIALS</p><h2 id="testimonial-title">What Our Customers Say</h2><div className="testimonial-grid"><Testimonial initials="RM" name="Rahul Mehta" role="Business Owner" quote="Excellent quality and very comfortable. Perfect for my office setup!" /><Testimonial initials="PS" name="Priya Sharma" role="Homeowner" quote="Stylish and sturdy chairs. My dining area looks amazing now!" /><Testimonial initials="AV" name="Amit Verma" role="Restaurant Owner" quote="Great design, premium finish and superb customer service." /></div><div className="testimonial-dots" aria-hidden="true"><span className="active" /><span /><span /></div></section>
+      <TestimonialsCarousel reviews={featuredReviews} />
 
     </>
   );
