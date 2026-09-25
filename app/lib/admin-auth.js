@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-export const ADMIN_SESSION_COOKIE = "mk_chairs_admin_session";
+export const ADMIN_SESSION_COOKIE = "mk_chairs_admin_session_v2";
+export const LEGACY_ADMIN_SESSION_COOKIE = "mk_chairs_admin_session";
 const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
 function getAdminSecret() {

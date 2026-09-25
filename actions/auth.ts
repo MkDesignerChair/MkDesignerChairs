@@ -632,8 +632,8 @@ export async function verifyPhoneOtp(
 }
 
 function getAdminEmails(): string[] {
-  const emails = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
-  return emails.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase()
+  return email ? [email] : []
 }
 
 export async function adminLogin(
@@ -658,57 +658,23 @@ export async function adminLogin(
 
   const isAdminEmail = adminEmails.includes(email.toLowerCase())
 
-  let signInRes = await supabase.auth.signInWithPassword({
+  const signInRes = await supabase.auth.signInWithPassword({
     email,
     password,
   })
 
-  let data = signInRes.data
-  let error = signInRes.error
-
-  let adminClient: any = null
-  if (
-    error &&
-    process.env.NODE_ENV !== 'production' &&
-    isAdminEmail &&
-    password === adminPassword
-  ) {
-    try {
-      const { createAdminClient } = await import('@/lib/supabase/admin')
-      adminClient = createAdminClient()
-
-      const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { role: 'admin', full_name: 'Admin' }
-      })
-
-      if (createError) {
-        console.error('Admin auto-seed createUser error:', createError)
-      }
-
-      if (!createError && newUser?.user) {
-        const retry = await supabase.auth.signInWithPassword({ email, password })
-        data = retry.data
-        error = retry.error
-      }
-    } catch (e) {
-      console.error('Failed to auto-seed admin user:', e)
-    }
+  if (signInRes.error || !signInRes.data?.user) {
+    return { error: signInRes.error?.message || 'Invalid credentials' }
   }
 
-  if (error || !data?.user) {
-    return { error: error?.message || 'Invalid credentials' }
-  }
-
+  const authenticatedUser = signInRes.data.user
   const { createAdminClient } = await import('@/lib/supabase/admin')
-  const adminDbClient = adminClient || createAdminClient()
+  const adminDbClient = createAdminClient()
 
   let { data: profile } = await adminDbClient
     .from('profiles')
     .select('*')
-    .eq('id', data.user.id)
+    .eq('id', authenticatedUser.id)
     .maybeSingle()
 
   if (isAdminEmail) {
@@ -717,7 +683,7 @@ export async function adminLogin(
         const { data: newProfile, error: insertError } = await adminDbClient
           .from('profiles')
           .upsert({
-            id: data.user.id,
+            id: authenticatedUser.id,
             email: email.toLowerCase(),
             full_name: 'Admin',
             role: 'admin',
@@ -736,7 +702,7 @@ export async function adminLogin(
         const { data: updatedProfile, error: updateError } = await adminDbClient
           .from('profiles')
           .update({ role: 'admin', is_active: true })
-          .eq('id', data.user.id)
+          .eq('id', authenticatedUser.id)
           .select('*')
           .single()
 
@@ -760,8 +726,8 @@ export async function adminLogin(
   }
 
   await setRawflexSessionCookie({
-    id: data.user.id,
-    email: data.user.email,
+    id: authenticatedUser.id,
+    email: authenticatedUser.email,
     full_name: profile.full_name || 'Admin',
     role: 'admin'
   })

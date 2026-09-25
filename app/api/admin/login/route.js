@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ADMIN_SESSION_COOKIE, adminSessionMaxAge, createAdminSession, credentialsAreValid, isAdminLoginConfigured } from "../../../lib/admin-auth";
+import { ADMIN_SESSION_COOKIE, LEGACY_ADMIN_SESSION_COOKIE, adminSessionMaxAge, createAdminSession, credentialsAreValid, isAdminLoginConfigured } from "../../../lib/admin-auth";
 
 export async function POST(request) {
   const { email, password } = await request.json();
@@ -14,6 +14,7 @@ export async function POST(request) {
 
   const response = NextResponse.json({ success: true });
   response.cookies.set(ADMIN_SESSION_COOKIE, createAdminSession(email.trim().toLowerCase()), { httpOnly: true, maxAge: adminSessionMaxAge, path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+  response.cookies.set(LEGACY_ADMIN_SESSION_COOKIE, "", { expires: new Date(0), path: "/" });
 
   return response;
 }
