@@ -32,7 +32,10 @@
     "timeline": {
       "placed": "2026-09-18T08:40:00.000Z",
       "confirmed": "2026-09-18T09:10:00.000Z",
-      "packed": "2026-09-18T15:25:00.000Z"
+      "packed": "2026-09-18T15:25:00.000Z",
+      "shipped": "2026-09-25T16:10:44.978Z",
+      "out_for_delivery": "2026-09-25T16:10:44.978Z",
+      "delivered": "2026-09-25T16:10:44.978Z"
     },
     "shipping": {
       "addressLine1": "42 Green Park",
@@ -42,8 +45,19 @@
       "postalCode": "751024",
       "courier": "Not assigned",
       "trackingNumber": "Not assigned",
-      "estimatedDeliveryDate": ""
-    }
+      "estimatedDeliveryDate": "",
+      "shiprocket": {
+        "sourceOrderId": "202609181042",
+        "orderId": "1610434837",
+        "shipmentId": "1606650259",
+        "courierId": "",
+        "courierName": "",
+        "awb": "",
+        "status": "NEW",
+        "createdAt": "2026-09-25T16:10:35.421Z"
+      }
+    },
+    "statusUpdatedAt": "2026-09-25T16:14:06.756Z"
   },
   {
     "id": "order-20260917-1041",

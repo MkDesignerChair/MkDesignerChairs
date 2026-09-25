@@ -1,14 +1,23 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const filePath = join(process.cwd(), "data", "reviews.json");
 const editableFields = new Set(["customerName", "customerRole", "productName", "rating", "reviewText", "isApproved", "isFeatured"]);
 
 async function readReviews() {
-  return JSON.parse(await readFile(filePath, "utf8"));
+  const fallbackReviews = JSON.parse(await readFile(filePath, "utf8"));
+  const reviews = isPersistentDataConfigured() ? await getPersistentJson("reviews.json", fallbackReviews) : fallbackReviews;
+  if (!Array.isArray(reviews)) throw new Error("Reviews must be a list.");
+  return reviews;
 }
 
 async function writeReviews(reviews) {
+  if (isPersistentDataConfigured()) {
+    await savePersistentJson("reviews.json", reviews);
+    return;
+  }
+
   await writeFile(`${filePath}.tmp`, `${JSON.stringify(reviews, null, 2)}\n`, "utf8");
   await rename(`${filePath}.tmp`, filePath);
 }

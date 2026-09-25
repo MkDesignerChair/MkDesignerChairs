@@ -1,12 +1,12 @@
 import ProductCatalog from "../components/ProductCatalog";
 import { SiteNavigation } from "../components/SecondaryPage";
 import { getProducts } from "../lib/products";
-import { getCategories } from "../../actions/category-catalog";
+import { getStorefrontCategories } from "../../actions/category-catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function ShopPage({ searchParams }) {
-  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
+  const [products, categories] = await Promise.all([getProducts(), getStorefrontCategories()]);
   const params = await searchParams;
   const requestedCategory = typeof params?.category === "string" ? params.category : undefined;
   const selectedCategory = categories.find((category) => category.slug === requestedCategory || category.name === requestedCategory)?.id;

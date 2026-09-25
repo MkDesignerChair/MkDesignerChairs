@@ -30,6 +30,11 @@ const navigation = [
   ["settings", "Store Settings", "settings"],
 ];
 const validSections = new Set(navigation.map(([id]) => id));
+const imageKitEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT?.replace(/\/$/, "");
+
+function isImageKitImage(image) {
+  return Boolean(imageKitEndpoint && typeof image === "string" && image.startsWith(imageKitEndpoint));
+}
 
 function AdminNavIcon({ name }) {
   const shared = { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "1.8" };
@@ -54,6 +59,17 @@ function formatPrice(price) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
+async function readApiResponse(response) {
+  const body = await response.text();
+  if (!body) return { error: "The server returned an empty response." };
+
+  try {
+    return JSON.parse(body);
+  } catch {
+    return { error: "The server returned an invalid response." };
+  }
+}
+
 export default function AdminDashboard({ adminEmail, categories, customers, inquiries, orders, products, reviews, siteContent }) {
   const [catalog, setCatalog] = useState(products);
   const [categoryList, setCategoryList] = useState(categories);
@@ -64,7 +80,9 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   const [search, setSearch] = useState("");
   const [content, setContent] = useState(siteContent);
   const [editingProductId, setEditingProductId] = useState(null);
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedSection = searchParams.get("section");
@@ -81,24 +99,31 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   function setActiveSection(section) {
     if (!validSections.has(section) || section === activeSection) return;
     setEditingProductId(null);
+    setIsCreatingProduct(false);
     setEditingCategoryId(null);
+    setIsCreatingCategory(false);
     router.push(`/admin?section=${encodeURIComponent(section)}`);
   }
 
   async function saveProduct(id, changes) {
     setIsSaving(true);
     setMessage("");
-    const response = await fetch("/api/admin/catalog", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, changes }) });
-    const result = await response.json();
-    setIsSaving(false);
+    try {
+      const response = await fetch("/api/admin/catalog", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, changes }) });
+      const result = await readApiResponse(response);
 
-    if (!response.ok) {
-      setMessage(result.error || "Unable to save the product.");
-      return;
+      if (!response.ok) {
+        setMessage(result.error || "Unable to save the product.");
+        return;
+      }
+
+      setCatalog((current) => current.map((product) => product.id === id ? { ...product, ...result.override } : product));
+      setMessage("Catalog saved. Changes are now visible in the storefront.");
+    } catch {
+      setMessage("Unable to reach the server. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
-
-    setCatalog((current) => current.map((product) => product.id === id ? { ...product, ...result.override } : product));
-    setMessage("Catalog saved. Changes are now visible in the storefront.");
   }
 
   async function logout() {
@@ -116,19 +141,42 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
       values[key] = nextValue;
     }
     const response = await fetch("/api/admin/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section, values }) });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     if (!response.ok) { setMessage(result.error || "Unable to save content."); return; }
     setContent((current) => ({ ...current, [section]: result.content }));
     setMessage("Live storefront content saved. Refresh the public page to view it.");
   }
 
   function editChairDetails(product) {
+    setIsCreatingProduct(false);
     setEditingProductId(product.id);
   }
 
+  function saveEditedProduct(savedProduct) {
+    const category = categoryList.find((item) => item.id === savedProduct.categoryId);
+    const product = { ...savedProduct, category: category?.name || savedProduct.category, categorySlug: category?.slug || savedProduct.categorySlug };
+    setCatalog((current) => current.some((item) => item.id === product.id) ? current.map((item) => item.id === product.id ? product : item) : [...current, product]);
+  }
+
   function saveCategory(updatedCategory) {
-    setCategoryList((current) => current.map((category) => category.id === updatedCategory.id ? updatedCategory : category));
+    setCategoryList((current) => current.some((category) => category.id === updatedCategory.id) ? current.map((category) => category.id === updatedCategory.id ? updatedCategory : category) : [...current, updatedCategory]);
     setCatalog((current) => current.map((product) => product.categoryId === updatedCategory.id ? { ...product, category: updatedCategory.name, categorySlug: updatedCategory.slug } : product));
+  }
+
+  async function toggleCategoryStatus(category) {
+    setIsSaving(true);
+    setMessage("");
+    const response = await fetch("/api/admin/categories", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: category.id, changes: { isActive: category.isActive === false } }) });
+    const result = await readApiResponse(response);
+    setIsSaving(false);
+
+    if (!response.ok) {
+      setMessage(result.error || "Unable to update the category.");
+      return;
+    }
+
+    saveCategory(result.category);
+    setMessage(`${result.category.name} is now ${result.category.isActive === false ? "inactive" : "active"}.`);
   }
 
   function removeCategory(id, fallbackCategory) {
@@ -142,7 +190,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
     formData.set("file", file);
     setIsSaving(true);
     const response = await fetch("/api/admin/media", { method: "POST", body: formData });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     setIsSaving(false);
     if (!response.ok) {
       setMessage(result.error || "Unable to upload the image.");
@@ -157,7 +205,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
     setIsHeroSaving(true);
     setMessage("");
     const response = await fetch("/api/admin/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section: "hero", values: content.hero }) });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     setIsHeroSaving(false);
 
     if (!response.ok) {
@@ -174,17 +222,17 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   }
 
   async function deleteManagedHeroImage(image) {
-    if (typeof image !== "string" || !image.startsWith("/uploads/")) return;
+    if (!isImageKitImage(image)) return;
     const response = await fetch("/api/admin/hero-media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image }) });
+    const result = await readApiResponse(response);
     if (!response.ok) {
-      const result = await response.json();
       throw new Error(result.error || "Unable to delete the previous image.");
     }
   }
 
   async function saveHeroImage(field, image) {
     const response = await fetch("/api/admin/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section: "hero", values: { [field]: image } }) });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     if (!response.ok) throw new Error(result.error || "Unable to save the image.");
     setContent((current) => ({ ...current, hero: result.content }));
   }
@@ -199,7 +247,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
 
     try {
       const uploadResponse = await fetch("/api/admin/hero-media", { method: "POST", body: formData });
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = await readApiResponse(uploadResponse);
       if (!uploadResponse.ok) throw new Error(uploadResult.error || "Unable to upload the image.");
       await saveHeroImage(field, uploadResult.image);
       await deleteManagedHeroImage(previousImage);
@@ -234,8 +282,9 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
 
   function renderCategories() {
     const editingCategory = categoryList.find((category) => category.id === editingCategoryId);
+    if (isCreatingCategory) return <CategoryEditor category={null} productCount={0} onClose={() => setIsCreatingCategory(false)} onDeleted={removeCategory} onSaved={(category) => { saveCategory(category); setIsCreatingCategory(false); setEditingCategoryId(category.id); }} />;
     if (editingCategory) return <CategoryEditor category={editingCategory} productCount={catalog.filter((product) => product.categoryId === editingCategory.id).length} onClose={() => setEditingCategoryId(null)} onDeleted={removeCategory} onSaved={saveCategory} />;
-    return <><div className="admin-page-heading"><div><p className="admin-kicker">CATALOG STRUCTURE</p><h1>Chair Categories</h1><p>Manage category names, links, imagery, and homepage placement from one source.</p></div></div><section className="admin-panel"><div className="admin-table"><div className="admin-table-head"><span>CATEGORY</span><span>SLUG</span><span>PRODUCTS</span><span>ACTIONS</span></div>{categoryList.map((category) => <div className="admin-product-row" key={category.id}><strong>{category.name}</strong><code>{category.slug}</code><span>{catalog.filter((product) => product.categoryId === category.id).length} chairs{category.featured && <small className="admin-featured-category">Featured</small>}</span><button className="admin-inline-link admin-category-edit" type="button" onClick={() => setEditingCategoryId(category.id)}>Edit</button></div>)}</div></section><p className="admin-note">Editing a category updates product choices, filters, storefront links, and featured spaces. Deleting a category safely moves its products to the remaining fallback category.</p></>;
+    return <><div className="admin-page-heading"><div><p className="admin-kicker">CATALOG STRUCTURE</p><h1>Chair Categories</h1><p>Manage category names, links, imagery, and homepage placement from one source.</p></div><button className="admin-site-link" type="button" onClick={() => setIsCreatingCategory(true)}>+ Add category</button></div>{message && <p className="admin-message" role="status">{message}</p>}<section className="admin-panel"><div className="admin-table"><div className="admin-table-head"><span>CATEGORY</span><span>SLUG</span><span>PRODUCTS</span><span>ACTIONS</span></div>{categoryList.map((category) => <div className="admin-product-row" key={category.id}><strong>{category.name}</strong><code>{category.slug}</code><span>{catalog.filter((product) => product.categoryId === category.id).length} chairs{category.featured && <small className="admin-featured-category">Featured</small>}</span><span className="admin-category-actions"><button className={category.isActive !== false ? "admin-status admin-status-button" : "admin-status admin-status-off admin-status-button"} disabled={isSaving} type="button" onClick={() => toggleCategoryStatus(category)}>{category.isActive !== false ? "Active" : "Inactive"}</button><button className="admin-inline-link admin-category-edit" disabled={isSaving} type="button" onClick={() => setEditingCategoryId(category.id)}>Edit</button></span></div>)}</div></section><p className="admin-note">Inactive categories and their products are hidden from the storefront. Editing a category updates product choices, filters, storefront links, and featured spaces.</p></>;
   }
 
   function renderReviews() {
@@ -274,9 +323,10 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
 
   function renderProducts() {
     const editingProduct = catalog.find((product) => product.id === editingProductId);
-    if (editingProduct) return <ProductEditor categories={categoryList} product={editingProduct} onClose={() => setEditingProductId(null)} onSaved={(savedProduct) => { const category = categoryList.find((item) => item.id === savedProduct.categoryId); setCatalog((current) => current.map((product) => product.id === savedProduct.id ? { ...savedProduct, category: category?.name || savedProduct.category, categorySlug: category?.slug || savedProduct.categorySlug } : product)); }} />;
+    if (isCreatingProduct) return <ProductEditor categories={categoryList} product={null} onClose={() => setIsCreatingProduct(false)} onDeleted={() => {}} onSaved={(product) => { saveEditedProduct(product); setIsCreatingProduct(false); }} />;
+    if (editingProduct) return <ProductEditor categories={categoryList} product={editingProduct} onClose={() => setEditingProductId(null)} onDeleted={(id) => setCatalog((current) => current.filter((product) => product.id !== id))} onSaved={saveEditedProduct} />;
 
-    return <><div className="admin-page-heading"><div><p className="admin-kicker">CHAIR CATALOG</p><h1>Products</h1><p>Edit product name, price, category, storefront visibility, and chair specifications.</p></div><label className="admin-search">⌕<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search chairs" /></label></div>{message && <p className="admin-message" role="status">{message}</p>}<section className="admin-panel"><div className="admin-table admin-product-table"><div className="admin-table-head"><span>PRODUCT</span><span>CATEGORY</span><span>PRICE</span><span>STATUS</span></div>{visibleProducts.map((product) => <div className="admin-product-row" key={product.id}><span className="admin-product-name"><img src={product.image} alt="" /><input aria-label={`Name for ${product.name}`} value={product.name} onChange={(event) => setCatalog((current) => current.map((item) => item.id === product.id ? { ...item, name: event.target.value } : item))} onBlur={(event) => saveProduct(product.id, { name: event.target.value })} /></span><select aria-label={`Category for ${product.name}`} value={product.categoryId} onChange={(event) => saveProduct(product.id, { categoryId: event.target.value })}>{categoryList.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><label className="admin-price"><span>₹</span><input aria-label={`Price for ${product.name}`} min="1" type="number" value={product.price} onChange={(event) => setCatalog((current) => current.map((item) => item.id === product.id ? { ...item, price: Number(event.target.value) } : item))} onBlur={(event) => saveProduct(product.id, { price: Number(event.target.value) })} /></label><span className="admin-product-actions"><button className={product.isActive !== false ? "admin-status admin-status-button" : "admin-status admin-status-off admin-status-button"} disabled={isSaving} type="button" onClick={() => saveProduct(product.id, { isActive: product.isActive === false })}>{product.isActive !== false ? "Active" : "Hidden"}</button><button type="button" onClick={() => editChairDetails(product)}>Details</button><label className="admin-image-upload">Image<input accept="image/jpeg,image/png,image/webp" disabled={isSaving} type="file" onChange={(event) => replaceProductImage(product, event.target.files?.[0])} /></label></span></div>)}</div></section><p className="admin-note">Details include upholstery, finishes, dimensions, weight capacity, warranty, stock, FAQs, and SEO metadata. Upload a JPG, PNG, or WEBP image (up to 5 MB) directly from each product row.</p></>;
+    return <><div className="admin-page-heading"><div><p className="admin-kicker">CHAIR CATALOG</p><h1>Products</h1><p>Edit product name, price, category, storefront visibility, and chair specifications.</p></div><span className="admin-product-toolbar"><button className="admin-site-link" type="button" onClick={() => setIsCreatingProduct(true)}>+ Add product</button><label className="admin-search">⌕<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search chairs" /></label></span></div>{message && <p className="admin-message" role="status">{message}</p>}<section className="admin-panel"><div className="admin-table admin-product-table"><div className="admin-table-head"><span>PRODUCT</span><span>CATEGORY</span><span>PRICE</span><span>STATUS</span></div>{visibleProducts.map((product) => <div className="admin-product-row" key={product.id}><span className="admin-product-name"><img src={product.image} alt="" /><input aria-label={`Name for ${product.name}`} value={product.name} onChange={(event) => setCatalog((current) => current.map((item) => item.id === product.id ? { ...item, name: event.target.value } : item))} onBlur={(event) => saveProduct(product.id, { name: event.target.value })} /></span><select aria-label={`Category for ${product.name}`} value={product.categoryId} onChange={(event) => saveProduct(product.id, { categoryId: event.target.value })}>{categoryList.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select><label className="admin-price"><span>₹</span><input aria-label={`Price for ${product.name}`} min="1" type="number" value={product.price} onChange={(event) => setCatalog((current) => current.map((item) => item.id === product.id ? { ...item, price: Number(event.target.value) } : item))} onBlur={(event) => saveProduct(product.id, { price: Number(event.target.value) })} /></label><span className="admin-product-actions"><button className={product.isActive !== false ? "admin-status admin-status-button" : "admin-status admin-status-off admin-status-button"} disabled={isSaving} type="button" onClick={() => saveProduct(product.id, { isActive: product.isActive === false })}>{product.isActive !== false ? "Active" : "Hidden"}</button><button type="button" onClick={() => editChairDetails(product)}>Details</button><label className="admin-image-upload">Image<input accept="image/jpeg,image/png,image/webp" disabled={isSaving} type="file" onChange={(event) => replaceProductImage(product, event.target.files?.[0])} /></label></span></div>)}</div></section><p className="admin-note">Details include upholstery, finishes, dimensions, weight capacity, warranty, stock, FAQs, and SEO metadata. Upload a JPG, PNG, or WEBP image (up to 5 MB) directly from each product row.</p></>;
   }
 
   function renderHomepageContent() {

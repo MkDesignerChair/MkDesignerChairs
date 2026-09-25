@@ -456,7 +456,6 @@ img { display: block; max-width: 100%; }
   .space-card-image::after { background: linear-gradient(0deg, rgba(5, 5, 4, .22), transparent 56%); content: ''; inset: 0; pointer-events: none; position: absolute; z-index: 1; }
   .space-card-image img { height: 100% !important; inset: 0 !important; object-position: center; position: absolute !important; width: 100% !important; }
   .space-card-label { align-items: center; bottom: auto; color: #f0ece3; display: flex; font-size: 13px; left: auto; line-height: 1.18; min-height: 52px; padding: 11px 12px 12px; position: relative; }
-  .space-card-view { align-self: end; color: #dfb96c; font-size: 10px; font-weight: 800; margin-left: auto; text-transform: uppercase; white-space: nowrap; }
 }
 
 /* Present campaign and craftsmanship content beside, not over, phone imagery. */
@@ -725,6 +724,7 @@ img { display: block; max-width: 100%; }
 .admin-status-off { background: #3b2a27; color: #efad99; }
 .admin-inline-link { color: #e0ba75; font-size: 12px; font-weight: 800; }
 .admin-category-edit { background: transparent; border: 1px solid rgba(224,190,127,.3); border-radius: 5px; cursor: pointer; padding: 6px 10px; }
+.admin-category-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
 .admin-featured-category { background: rgba(224,190,117,.14); border-radius: 999px; color: #e4c184; display: block; font-size: 10px; font-weight: 900; margin-top: 5px; padding: 3px 7px; width: fit-content; }
 .admin-category-editor-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; }
 .admin-category-editor-actions .admin-save-product { margin-top: 20px; }
@@ -734,6 +734,7 @@ img { display: block; max-width: 100%; }
 .admin-search { align-items: center; background: #171815; border: 1px solid rgba(238,229,212,.17); border-radius: 7px; color: #dcb66e; display: flex; font-size: 18px; gap: 8px; padding: 0 12px; }
 .admin-search input, .admin-product-name input, .admin-price input, .admin-product-row select { background: transparent; border: 0; color: #eee8de; font: inherit; outline: 0; }
 .admin-search input { height: 40px; width: 175px; }
+.admin-product-toolbar { align-items: center; display: flex; gap: 12px; }
 .admin-product-name input { font-weight: 700; min-width: 0; width: 100%; }
 .admin-product-row select { border-bottom: 1px solid rgba(224,190,127,.34); cursor: pointer; padding: 6px 0; }
 .admin-product-row option { background: #171815; }
@@ -1575,12 +1576,14 @@ img { display: block; max-width: 100%; }
 .product-detail-page { background: #0b0b09; min-height: 100vh; }
 .product-detail-shell { display: grid; gap: clamp(36px, 6vw, 90px); grid-template-columns: minmax(0, .95fr) minmax(330px, .8fr); margin: 0 auto; max-width: 1280px; padding: 56px 40px 90px; }
 .product-gallery { min-width: 0; }
-.product-detail-image { aspect-ratio: 1 / 1.08; background: #151512; border: 1px solid rgba(225, 185, 109, .24); border-radius: 12px; cursor: grab; overflow: hidden; position: relative; touch-action: pan-y; user-select: none; }
-.product-detail-image:active { cursor: grabbing; }
-.product-detail-image img { height: 100%; object-fit: cover; width: 100%; }
-.product-gallery-control { align-items: center; background: rgba(10, 10, 8, .74); border: 1px solid rgba(225, 185, 109, .5); border-radius: 50%; color: #f5e4bf; cursor: pointer; display: grid; font-size: 30px; height: 38px; line-height: 1; padding: 0 0 4px; place-items: center; position: absolute; top: 50%; transform: translateY(-50%); width: 38px; z-index: 1; }
-.product-gallery-previous { left: 14px; }
-.product-gallery-next { right: 14px; }
+.product-detail-image { aspect-ratio: 1 / 1.08; background: #151512; border: 1px solid rgba(225, 185, 109, .24); border-radius: 12px; cursor: zoom-in; overflow: hidden; position: relative; touch-action: pan-y; user-select: none; }
+.product-detail-image:focus-visible { outline: 2px solid #deb466; outline-offset: 3px; }
+.product-detail-image img { height: 100%; object-fit: cover; transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%); transition: transform .22s ease-out; width: 100%; }
+.product-detail-image.is-zoomed { cursor: zoom-out; touch-action: none; }
+.product-detail-image.is-zoomed img { transform: translate(var(--zoom-pan-x, 0px), var(--zoom-pan-y, 0px)) scale(1.65); }
+@media (hover: hover) and (pointer: fine) {
+  .product-detail-image:hover img { transform: scale(1.65); }
+}
 .product-gallery-count { background: rgba(10, 10, 8, .72); border-radius: 999px; bottom: 13px; color: #f2e8d7; font-size: 11px; font-weight: 800; padding: 6px 9px; position: absolute; right: 13px; }
 .product-gallery-thumbnails { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px; }
 .product-gallery-thumbnails button { background: #151512; border: 1px solid rgba(225, 185, 109, .25); border-radius: 6px; cursor: pointer; flex: 0 0 72px; height: 72px; overflow: hidden; padding: 0; position: relative; }
@@ -1622,6 +1625,12 @@ img { display: block; max-width: 100%; }
 
 @media (min-width: 621px) {
   .product-detail-actions { grid-template-columns: 46px 180px; width: 238px; }
+}
+
+@media (min-width: 981px) {
+  .product-gallery { display: grid; gap: 12px; grid-template-columns: 72px minmax(0, 1fr); }
+  .product-detail-image { grid-column: 2; grid-row: 1; }
+  .product-gallery-thumbnails { flex-direction: column; grid-column: 1; grid-row: 1; margin-top: 0; overflow-x: hidden; overflow-y: auto; padding-bottom: 0; }
 }
 
 @media (min-width: 1101px) {
@@ -1751,9 +1760,6 @@ img { display: block; max-width: 100%; }
   .product-detail-page { padding-top: 76px; }
   .product-detail-shell { display: block; padding: 20px 18px 52px; }
   .product-detail-image { aspect-ratio: 1 / 1; border-radius: 10px; height: auto; margin-bottom: 16px; }
-  .product-gallery-control { font-size: 26px; height: 34px; width: 34px; }
-  .product-gallery-previous { left: 10px; }
-  .product-gallery-next { right: 10px; }
   .product-gallery-thumbnails { gap: 8px; margin-top: 10px; }
   .product-gallery-thumbnails button { flex-basis: 58px; height: 58px; }
   .product-detail-category { font-size: 10px; letter-spacing: 1px; margin-bottom: 13px; }

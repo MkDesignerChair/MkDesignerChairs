@@ -39,6 +39,11 @@ const sections = [
     ],
   },
 ];
+const imageKitEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT?.replace(/\/$/, "");
+
+function isImageKitImage(image) {
+  return Boolean(imageKitEndpoint && typeof image === "string" && image.startsWith(imageKitEndpoint));
+}
 
 function getImageDimensions(file) {
   return new Promise((resolve, reject) => {
@@ -71,6 +76,16 @@ export default function HomepageContentEditor({ content, onContentSaved, onSecti
     onSectionChange(section, { ...content[section], [field]: value });
   }
 
+  async function readApiResponse(response) {
+    const body = await response.text();
+    if (!body) return { error: "The server returned an empty response." };
+    try {
+      return JSON.parse(body);
+    } catch {
+      return { error: "The server returned an invalid response." };
+    }
+  }
+
   async function saveSection(event, section) {
     event.preventDefault();
     setBusySection(section.id);
@@ -78,7 +93,7 @@ export default function HomepageContentEditor({ content, onContentSaved, onSecti
 
     try {
       const response = await fetch("/api/admin/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section: section.id, values: content[section.id] }) });
-      const result = await response.json();
+      const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Unable to save this homepage section.");
       onContentSaved(section.id, result.content);
       setNotice(`${section.title} saved and published to the homepage.`);
@@ -91,16 +106,16 @@ export default function HomepageContentEditor({ content, onContentSaved, onSecti
 
   async function saveImage(section, image) {
     const response = await fetch("/api/admin/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section: section.id, values: { [section.image.field]: image } }) });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     if (!response.ok) throw new Error(result.error || "Unable to save the image.");
     onContentSaved(section.id, result.content);
   }
 
   async function deleteManagedImage(image) {
-    if (typeof image !== "string" || !image.startsWith("/uploads/")) return;
+    if (!isImageKitImage(image)) return;
     const response = await fetch("/api/admin/homepage-media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image }) });
+    const result = await readApiResponse(response);
     if (!response.ok) {
-      const result = await response.json();
       throw new Error(result.error || "Unable to delete the previous image.");
     }
   }
@@ -117,7 +132,7 @@ export default function HomepageContentEditor({ content, onContentSaved, onSecti
       const formData = new FormData();
       formData.set("file", file);
       const uploadResponse = await fetch("/api/admin/homepage-media", { method: "POST", body: formData });
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = await readApiResponse(uploadResponse);
       if (!uploadResponse.ok) throw new Error(uploadResult.error || "Unable to upload the image.");
 
       const previousImage = content[section.id][section.image.field];

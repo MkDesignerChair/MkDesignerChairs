@@ -1,13 +1,15 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
+import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const filePath = join(process.cwd(), "data", "contact-inquiries.json");
 const statuses = new Set(["new", "contacted", "in_progress", "resolved"]);
 
 async function readInquiries() {
   try {
-    const inquiries = JSON.parse(await readFile(filePath, "utf8"));
+    const fallbackInquiries = JSON.parse(await readFile(filePath, "utf8"));
+    const inquiries = isPersistentDataConfigured() ? await getPersistentJson("contact-inquiries.json", fallbackInquiries) : fallbackInquiries;
     return Array.isArray(inquiries) ? inquiries : [];
   } catch (error) {
     if (error && typeof error === "object" && error.code === "ENOENT") return [];
@@ -16,7 +18,11 @@ async function readInquiries() {
 }
 
 async function writeInquiries(inquiries) {
-  await mkdir(join(process.cwd(), "data"), { recursive: true });
+  if (isPersistentDataConfigured()) {
+    await savePersistentJson("contact-inquiries.json", inquiries);
+    return;
+  }
+
   await writeFile(`${filePath}.tmp`, `${JSON.stringify(inquiries, null, 2)}\n`, "utf8");
   await rename(`${filePath}.tmp`, filePath);
 }

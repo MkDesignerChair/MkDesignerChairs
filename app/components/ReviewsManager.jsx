@@ -15,13 +15,23 @@ export default function ReviewsManager({ initialReviews }) {
     setReviews((current) => current.map((review) => review.id === id ? { ...review, [field]: value } : review));
   }
 
+  async function readApiResponse(response) {
+    const body = await response.text();
+    if (!body) return { error: "The server returned an empty response." };
+    try {
+      return JSON.parse(body);
+    } catch {
+      return { error: "The server returned an invalid response." };
+    }
+  }
+
   async function persistReview(id, changes, successMessage) {
     setBusyReviewId(id);
     setMessage("");
 
     try {
       const response = await fetch("/api/admin/reviews", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, changes }) });
-      const result = await response.json();
+      const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Unable to update review.");
       setReviews((current) => current.map((review) => review.id === id ? result.review : review));
       setMessage(successMessage);
@@ -39,7 +49,7 @@ export default function ReviewsManager({ initialReviews }) {
 
     try {
       const response = await fetch("/api/admin/reviews", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-      const result = await response.json();
+      const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Unable to delete review.");
       setReviews((current) => current.filter((review) => review.id !== id));
       setMessage("Review deleted.");

@@ -15,8 +15,9 @@ function CatalogProductCard({ product }) {
 }
 
 export default function ProductCatalog({ categories, products, initialSelectedCategory, eyebrow, title }) {
-  const lowestPrice = Math.min(...products.map((product) => product.price));
-  const highestPrice = Math.max(...products.map((product) => product.price));
+  const prices = products.map((product) => product.price);
+  const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
   const [selectedCategories, setSelectedCategories] = useState(() => initialSelectedCategory ? [initialSelectedCategory] : []);
   const [maxPrice, setMaxPrice] = useState(highestPrice);
   const [filtersOpen, setFiltersOpen] = useState(false);

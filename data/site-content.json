@@ -73,5 +73,17 @@
     "promiseOne": "Premium materials",
     "promiseTwo": "Thoughtful ergonomics",
     "promiseThree": "Modern craftsmanship"
+  },
+  "hero": {
+    "eyebrow": "PREMIUM CHAIRS FOR A BETTER TOMORROW",
+    "title": "SIT IN STYLE",
+    "accent": "LIVE BETTER",
+    "description": "Elegant. Ergonomic. Exceptional. MK Designer Chairs bring comfort and class to every space.",
+    "buttonText": "Explore Collection",
+    "heroImage": "/banner.jpeg",
+    "officeCollectionImage": "/Products/office%20chair.jpeg",
+    "diningCollectionImage": "/Dinning%20Chair.jpeg",
+    "officeCollectionDescription": "Work Smarter / Sit Better",
+    "diningCollectionDescription": "Where Comfort Meets Togetherness"
   }
 }

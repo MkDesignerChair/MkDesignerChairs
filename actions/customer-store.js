@@ -3,15 +3,24 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { updateOrderCustomerByEmail, getOrders } from "./order-store";
 import { getReviews, updateReviewCustomerName } from "./review-store";
+import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const filePath = join(process.cwd(), "data", "customers.json");
 const editableFields = new Set(["name", "email", "phone", "status"]);
 
 async function readCustomers() {
-  return JSON.parse(await readFile(filePath, "utf8"));
+  const fallbackCustomers = JSON.parse(await readFile(filePath, "utf8"));
+  const customers = isPersistentDataConfigured() ? await getPersistentJson("customers.json", fallbackCustomers) : fallbackCustomers;
+  if (!Array.isArray(customers)) throw new Error("Customers must be a list.");
+  return customers;
 }
 
 async function writeCustomers(customers) {
+  if (isPersistentDataConfigured()) {
+    await savePersistentJson("customers.json", customers);
+    return;
+  }
+
   await writeFile(`${filePath}.tmp`, `${JSON.stringify(customers, null, 2)}\n`, "utf8");
   await rename(`${filePath}.tmp`, filePath);
 }

@@ -6,7 +6,8 @@
     "description": "Purposeful comfort for focused work and study.",
     "image": "/Products/office%20chair.jpeg",
     "defaultImage": "/Products/office%20chair.jpeg",
-    "featured": true
+    "featured": true,
+    "isActive": true
   },
   {
     "id": "dining",

@@ -3,6 +3,11 @@
 import { useState } from "react";
 
 const imageSpec = { ratio: 16 / 7, ratioLabel: "16:7", dimensions: "1920 × 840 px" };
+const imageKitEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT?.replace(/\/$/, "");
+
+function isImageKitImage(image) {
+  return Boolean(imageKitEndpoint && typeof image === "string" && image.startsWith(imageKitEndpoint));
+}
 
 function getImageDimensions(file) {
   return new Promise((resolve, reject) => {
@@ -31,25 +36,35 @@ export default function AboutPageEditor({ about, onSaved, onSectionChange }) {
   const [message, setMessage] = useState("");
   const [warning, setWarning] = useState("");
   const image = about.image || "/banner.jpeg";
-  const isUploadedImage = about.image?.startsWith("/uploads/");
+  const isUploadedImage = isImageKitImage(about.image);
 
   function updateField(field, value) {
     onSectionChange({ ...about, [field]: value });
   }
 
+  async function readApiResponse(response) {
+    const body = await response.text();
+    if (!body) return { error: "The server returned an empty response." };
+    try {
+      return JSON.parse(body);
+    } catch {
+      return { error: "The server returned an invalid response." };
+    }
+  }
+
   async function saveAbout(values) {
     const response = await fetch("/api/admin/content", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ section: "about", values }) });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     if (!response.ok) throw new Error(result.error || "Unable to save the About page.");
     onSaved(result.content);
     return result.content;
   }
 
   async function deleteManagedImage(value) {
-    if (typeof value !== "string" || !value.startsWith("/uploads/")) return;
+    if (!isImageKitImage(value)) return;
     const response = await fetch("/api/admin/homepage-media", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image: value }) });
+    const result = await readApiResponse(response);
     if (!response.ok) {
-      const result = await response.json();
       throw new Error(result.error || "Unable to delete the previous image.");
     }
   }
@@ -64,7 +79,7 @@ export default function AboutPageEditor({ about, onSaved, onSectionChange }) {
       const formData = new FormData();
       formData.set("file", file);
       const uploadResponse = await fetch("/api/admin/homepage-media", { method: "POST", body: formData });
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = await readApiResponse(uploadResponse);
       if (!uploadResponse.ok) throw new Error(uploadResult.error || "Unable to upload the image.");
       const previousImage = about.image;
       await saveAbout({ ...about, image: uploadResult.image });

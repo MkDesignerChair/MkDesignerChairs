@@ -2,7 +2,7 @@ import "./globals.css";
 import SiteFooter from "./components/SiteFooter";
 import { StoreProvider } from "./components/StoreProvider";
 import StorefrontNavigation from "./components/StorefrontNavigation";
-import { getCategories } from "../actions/category-catalog";
+import { getStorefrontCategories } from "../actions/category-catalog";
 import { getSiteContent } from "../actions/site-content";
 import StoreStatusNotice from "./components/StoreStatusNotice";
 
@@ -19,7 +19,7 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const [categories, content] = await Promise.all([getCategories(), getSiteContent()]);
+  const [categories, content] = await Promise.all([getStorefrontCategories(), getSiteContent()]);
 
   return (
     <html lang="en">

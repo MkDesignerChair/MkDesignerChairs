@@ -1,14 +1,23 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const filePath = join(process.cwd(), "data", "orders.json");
 export const orderSteps = ["placed", "confirmed", "packed", "shipped", "out_for_delivery", "delivered"];
 
 async function readOrders() {
-  return JSON.parse(await readFile(filePath, "utf8"));
+  const fallbackOrders = JSON.parse(await readFile(filePath, "utf8"));
+  const orders = isPersistentDataConfigured() ? await getPersistentJson("orders.json", fallbackOrders) : fallbackOrders;
+  if (!Array.isArray(orders)) throw new Error("Orders must be a list.");
+  return orders;
 }
 
 async function writeOrders(orders) {
+  if (isPersistentDataConfigured()) {
+    await savePersistentJson("orders.json", orders);
+    return;
+  }
+
   await writeFile(`${filePath}.tmp`, `${JSON.stringify(orders, null, 2)}\n`, "utf8");
   await rename(`${filePath}.tmp`, filePath);
 }

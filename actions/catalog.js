@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getCategories } from "./category-catalog";
+import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const overridesPath = join(process.cwd(), "data", "catalog-overrides.json");
 
@@ -16,8 +17,31 @@ function parseOverrides(contents) {
 
 export async function getCatalogOverrides() {
   const contents = await readFile(overridesPath, "utf8");
+  const fallbackOverrides = parseOverrides(contents);
+  return isPersistentDataConfigured() ? getPersistentJson("catalog-overrides.json", fallbackOverrides) : fallbackOverrides;
+}
 
-  return parseOverrides(contents);
+async function saveCatalogOverrides(overrides) {
+  if (isPersistentDataConfigured()) {
+    await savePersistentJson("catalog-overrides.json", overrides);
+    return;
+  }
+
+  const directory = join(process.cwd(), "data");
+  const temporaryPath = `${overridesPath}.tmp`;
+  await mkdir(directory, { recursive: true });
+  await writeFile(temporaryPath, `${JSON.stringify(overrides, null, 2)}\n`, "utf8");
+  await rename(temporaryPath, overridesPath);
+}
+
+export async function deleteCatalogProduct(productId) {
+  if (typeof productId !== "string" || !productId.trim()) {
+    throw new Error("A product ID is required.");
+  }
+
+  const overrides = await getCatalogOverrides();
+  const nextOverrides = { ...overrides, [productId]: { ...(overrides[productId] || {}), isDeleted: true } };
+  await saveCatalogOverrides(nextOverrides);
 }
 
 export async function updateCatalogOverride(productId, changes) {
@@ -34,6 +58,7 @@ export async function updateCatalogOverride(productId, changes) {
   const categoryId = typeof changes.categoryId === "string" ? changes.categoryId : undefined;
   const isActive = typeof changes.isActive === "boolean" ? changes.isActive : undefined;
   const featured = typeof changes.featured === "boolean" ? changes.featured : undefined;
+  const isCustomProduct = typeof changes.isCustomProduct === "boolean" ? changes.isCustomProduct : undefined;
   const stock = typeof changes.stock === "number" ? changes.stock : undefined;
   const galleryImages = Array.isArray(changes.galleryImages) ? changes.galleryImages : undefined;
   const textFields = ["shortDescription", "description", "material", "dimensions", "weightCapacity", "warranty", "finishOptions", "faqs", "seoTitle", "seoDescription", "badge", "image"];
@@ -53,6 +78,7 @@ export async function updateCatalogOverride(productId, changes) {
   if (categoryId !== undefined) nextOverride.categoryId = categoryId;
   if (isActive !== undefined) nextOverride.isActive = isActive;
   if (featured !== undefined) nextOverride.featured = featured;
+  if (isCustomProduct !== undefined) nextOverride.isCustomProduct = isCustomProduct;
   if (stock !== undefined) nextOverride.stock = stock;
   if (galleryImages !== undefined) nextOverride.galleryImages = [...new Set(galleryImages.map((image) => image.trim()))];
   for (const field of textFields) {
@@ -60,11 +86,7 @@ export async function updateCatalogOverride(productId, changes) {
   }
 
   const nextOverrides = { ...overrides, [productId]: nextOverride };
-  const directory = join(process.cwd(), "data");
-  const temporaryPath = `${overridesPath}.tmp`;
-  await mkdir(directory, { recursive: true });
-  await writeFile(temporaryPath, `${JSON.stringify(nextOverrides, null, 2)}\n`, "utf8");
-  await rename(temporaryPath, overridesPath);
+  await saveCatalogOverrides(nextOverrides);
 
   return nextOverride;
 }

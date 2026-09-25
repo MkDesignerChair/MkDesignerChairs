@@ -10,7 +10,7 @@ import TestimonialsCarousel from "./components/TestimonialsCarousel";
 import Link from "next/link";
 import { getSiteContent } from "./../actions/site-content";
 import { getProducts } from "./lib/products";
-import { getCategories } from "../actions/category-catalog";
+import { getStorefrontCategories } from "../actions/category-catalog";
 import { getFeaturedReviews } from "../actions/review-store";
 
 export const dynamic = "force-dynamic";
@@ -87,8 +87,8 @@ function ProductCard({ image, name, price, centered }) {
   return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><button className="add-cart" aria-label={`Add ${name} to cart`}><CartIcon /></button></div></article>;
 }
 
-function SpaceCard({ image, title, href, actionLabel }) {
-  return <a className="space-card" href={href}><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label"><span>{title}</span><span className="space-card-view">{actionLabel}</span></span></a>;
+function SpaceCard({ image, title, href }) {
+  return <a className="space-card" href={href}><span className="space-card-image"><Image src={image} alt="" fill sizes="(max-width: 700px) 42vw, 18vw" /></span><span className="space-card-label">{title}</span></a>;
 }
 
 function DetailPoint({ icon, children }) {
@@ -108,7 +108,7 @@ function LayersIcon() {
 }
 
 export default async function Home() {
-  const [content, products, categories, featuredReviews] = await Promise.all([getSiteContent(), getProducts(), getCategories(), getFeaturedReviews()]);
+  const [content, products, categories, featuredReviews] = await Promise.all([getSiteContent(), getProducts(), getStorefrontCategories(), getFeaturedReviews()]);
   const featuredProducts = products.filter((product) => product.featured === true);
   const featuredCategories = categories.filter((category) => category.featured);
   const officeCategory = categories.find((category) => category.id === "office");
@@ -191,7 +191,7 @@ export default async function Home() {
       <section className="spaces section-shell" id="dining-chairs">
         <div className="spaces-copy"><h2>{content.spaces.title}<br />{content.spaces.titleSecondLine}</h2><p>{content.spaces.description}</p><a className="gold-button" href="#quote">{content.spaces.buttonText}</a></div>
         <div className="space-grid">
-          {featuredCategories.map((category, index) => <SpaceCard actionLabel={content.spaces.cardActionLabel} image={index === 0 && content.spaces.image ? content.spaces.image : category.image || category.defaultImage || "/placeholder.png"} key={category.id} title={category.name} href={`/shop?category=${encodeURIComponent(category.slug)}`} />)}
+          {featuredCategories.map((category, index) => <SpaceCard image={index === 0 && content.spaces.image ? content.spaces.image : category.image || category.defaultImage || "/placeholder.png"} key={category.id} title={category.name} href={`/shop?category=${encodeURIComponent(category.slug)}`} />)}
         </div>
       </section>
 

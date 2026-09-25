@@ -1,5 +1,6 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const filePath = join(process.cwd(), "data", "site-content.json");
 
@@ -21,7 +22,6 @@ export const defaultSiteContent = {
     titleSecondLine: "Every Space",
     description: "From modern offices to luxurious dining rooms, our chairs blend comfort with contemporary design to elevate your environment.",
     buttonText: "Explore Spaces",
-    cardActionLabel: "View more",
     image: "",
   },
   comfort: {
@@ -104,7 +104,8 @@ export const defaultSiteContent = {
 };
 
 export async function getSiteContent() {
-  const overrides = JSON.parse(await readFile(filePath, "utf8"));
+  const fallbackOverrides = JSON.parse(await readFile(filePath, "utf8"));
+  const overrides = isPersistentDataConfigured() ? await getPersistentJson("site-content.json", fallbackOverrides) : fallbackOverrides;
   return Object.fromEntries(Object.entries(defaultSiteContent).map(([section, values]) => [section, { ...values, ...(overrides[section] || {}) }]));
 }
 
@@ -145,11 +146,16 @@ function validateSettings(values) {
 
 export async function updateSiteContent(section, values) {
   if (!(section in defaultSiteContent) || !values || typeof values !== "object") throw new Error("Invalid content section.");
-  const current = JSON.parse(await readFile(filePath, "utf8"));
+  const fallbackCurrent = JSON.parse(await readFile(filePath, "utf8"));
+  const current = isPersistentDataConfigured() ? await getPersistentJson("site-content.json", fallbackCurrent) : fallbackCurrent;
   const permitted = Object.keys(defaultSiteContent[section]);
   const nextValues = section === "settings" ? validateSettings(values) : Object.fromEntries(Object.entries(values).filter(([key, value]) => permitted.includes(key) && typeof value === "string").map(([key, value]) => [key, value.trim()]));
   const next = { ...current, [section]: { ...(current[section] || {}), ...nextValues } };
-  await writeFile(`${filePath}.tmp`, `${JSON.stringify(next, null, 2)}\n`, "utf8");
-  await rename(`${filePath}.tmp`, filePath);
+  if (isPersistentDataConfigured()) {
+    await savePersistentJson("site-content.json", next);
+  } else {
+    await writeFile(`${filePath}.tmp`, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+    await rename(`${filePath}.tmp`, filePath);
+  }
   return { ...defaultSiteContent[section], ...next[section] };
 }
