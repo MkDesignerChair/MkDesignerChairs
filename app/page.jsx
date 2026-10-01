@@ -5,7 +5,8 @@ import officeCollection from "../public/upgrade your space.jpeg";
 import blueDiningChair from "../public/Products/WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg";
 import AddToCartButton from "./components/AddToCartButton";
 import BuyNowButton from "./components/BuyNowButton";
-import HeaderActions from "./components/HeaderActions";
+import HeaderActions, { SearchForm } from "./components/HeaderActions";
+import WishlistButton from "./components/WishlistButton";
 import TestimonialsCarousel from "./components/TestimonialsCarousel";
 import Link from "next/link";
 import { getSiteContent } from "./../actions/site-content";
@@ -74,14 +75,14 @@ function Benefit({ icon, title, description }) {
 function FeaturedProductCard({ image, name, price, centered }) {
   const product = { id: name, image: image.src, name, price: Number(price.replace(",", "")) };
 
-  return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><button className="heart-button" type="button" aria-label={`Add ${name} to wishlist`}>♡</button></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><AddToCartButton product={product} /></div></article>;
+  return <article className="product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Image src={image} alt={name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /><WishlistButton product={product} /></div><div className="product-details"><h3>{name}</h3><strong>₹ {price}</strong><AddToCartButton product={product} /></div></article>;
 }
 
 function EnhancedFeaturedProductCard({ product, centered }) {
   const slug = product.detailSlug || product.id;
   const outOfStock = product.stock !== undefined && (!Number.isInteger(Number(product.stock)) || Number(product.stock) < 1);
 
-  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${product.name}`}><Image src={product.image} alt={product.name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><button className="heart-button" type="button" aria-label={`Add ${product.name} to wishlist`}>♡</button></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{product.name}</h3><strong>₹ {product.price.toLocaleString("en-IN")}</strong>{outOfStock && <small>Out of stock</small>}</Link><div className="featured-product-actions"><AddToCartButton disabled={outOfStock} product={product} /><BuyNowButton disabled={outOfStock} product={product} /></div></div></article>;
+  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${product.name}`}><Image src={product.image} alt={product.name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><WishlistButton product={product} /></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{product.name}</h3><strong>₹ {product.price.toLocaleString("en-IN")}</strong>{outOfStock && <small>Out of stock</small>}</Link><div className="featured-product-actions"><AddToCartButton disabled={outOfStock} product={product} /><BuyNowButton disabled={outOfStock} product={product} /></div></div></article>;
 }
 
 function ProductCard({ image, name, price, centered }) {
@@ -140,7 +141,7 @@ export default async function Home() {
         <details className="mobile-navigation">
           <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
           <div className="mobile-navigation-panel">
-            <div className="mobile-menu-search" aria-hidden="true"><span>Search chairs...</span><span>⌕</span></div>
+            <SearchForm className="mobile-menu-search" />
             <a href="/">Home</a>
             {navItems.filter((item) => item.href === "/office-chairs" || item.href === "/dining-chairs").map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}
             <details className="mobile-shop-menu">

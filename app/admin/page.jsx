@@ -8,6 +8,7 @@ import { getReviews } from "../../actions/review-store";
 import { getOrders } from "../../actions/order-store";
 import { getCustomers } from "../../actions/customer-store";
 import { getInquiries } from "../../actions/inquiry-store";
+import { getDefaultParcel } from "../lib/shiprocket";
 
 export const dynamic = "force-dynamic";
 
@@ -18,5 +19,5 @@ export default async function AdminPage() {
 
   const [products, siteContent, categories, reviews, orders, customers, inquiries] = await Promise.all([getAdminProducts(), getSiteContent(), getCategories(), getReviews(), getOrders(), getCustomers(), getInquiries()]);
 
-  return <AdminDashboard adminEmail={process.env.ADMIN_EMAIL} categories={categories} customers={customers} inquiries={inquiries} orders={orders} products={products} reviews={reviews} siteContent={siteContent} />;
+  return <AdminDashboard adminEmail={process.env.ADMIN_EMAIL} categories={categories} customers={customers} inquiries={inquiries} orders={orders} parcelDefaults={getDefaultParcel()} products={products} reviews={reviews} siteContent={siteContent} />;
 }

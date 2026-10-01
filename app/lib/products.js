@@ -28,6 +28,7 @@ function formatProductName(filename, index) {
 
 async function getCatalogProducts() {
   const filenames = (await readdir(join(process.cwd(), "public", "Products"))).filter((filename) => /\.(jpe?g|png)$/i.test(filename)).sort();
+  const filenameSet = new Set(filenames);
   const [overrides, categories] = await Promise.all([getCatalogOverrides(), getCategories()]);
   const fallbackCategory = categories[0];
 
@@ -47,20 +48,20 @@ async function getCatalogProducts() {
     return { id: filename, image: `/api/product-image?name=${encodeURIComponent(filename)}`, name, price, category: category.name, categoryId: category.id, categorySlug: category.slug, categoryIsActive: category.isActive !== false, featured: defaultFeaturedProducts.has(filename), ...productOverride, detailSlug: `catalog-${index + 1}` };
   }).filter(Boolean);
   const customProducts = Object.entries(overrides)
-    .filter(([, override]) => override.isCustomProduct === true && override.isDeleted !== true)
+    .filter(([id, override]) => override.isDeleted !== true && (override.isCustomProduct === true || (!filenameSet.has(id) && typeof override.image === "string" && override.image)))
     .map(([id, override], index) => {
       const category = categories.find((item) => item.id === override.categoryId) || fallbackCategory;
       return {
         id,
-        image: override.image,
         name: override.name || `Custom Chair ${index + 1}`,
         price: Number(override.price) || 7999,
+        detailSlug: `catalog-custom-${id}`,
+        ...override,
         category: category.name,
         categoryId: category.id,
         categorySlug: category.slug,
         categoryIsActive: category.isActive !== false,
-        detailSlug: `catalog-custom-${id}`,
-        ...override,
+        isCustomProduct: true,
       };
     });
 

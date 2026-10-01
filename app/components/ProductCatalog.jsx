@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import BuyNowButton from "./BuyNowButton";
+import WishlistButton from "./WishlistButton";
 
 function formatPrice(price) {
   return `₹${price.toLocaleString("en-IN")}`;
@@ -12,17 +13,21 @@ function CatalogProductCard({ product }) {
   const href = `/products/item/${product.detailSlug}`;
   const outOfStock = product.stock !== undefined && (!Number.isInteger(Number(product.stock)) || Number(product.stock) < 1);
 
-  return <article className="shop-product-card"><a className="shop-card-open" href={href} aria-label={`View details for ${product.name}`} /><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span></div><div className="shop-product-details"><div className="shop-product-info"><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong>{outOfStock && <small>Out of stock</small>}</div><div className="shop-card-actions"><AddToCartButton disabled={outOfStock} product={product} /><BuyNowButton disabled={outOfStock} product={product} /></div></div></article>;
+  return <article className="shop-product-card"><a className="shop-card-open" href={href} aria-label={`View details for ${product.name}`} /><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span><WishlistButton product={product} /></div><div className="shop-product-details"><div className="shop-product-info"><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong>{outOfStock && <small>Out of stock</small>}</div><div className="shop-card-actions"><AddToCartButton disabled={outOfStock} product={product} /><BuyNowButton disabled={outOfStock} product={product} /></div></div></article>;
 }
 
-export default function ProductCatalog({ categories, products, initialSelectedCategory, eyebrow, title }) {
+export default function ProductCatalog({ categories, products, initialSelectedCategory, initialSearch = "", eyebrow, title }) {
   const prices = products.map((product) => product.price);
   const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
   const [selectedCategories, setSelectedCategories] = useState(() => initialSelectedCategory ? [initialSelectedCategory] : []);
   const [maxPrice, setMaxPrice] = useState(highestPrice);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const filteredProducts = useMemo(() => products.filter((product) => (selectedCategories.length === 0 || selectedCategories.includes(product.categoryId)) && product.price <= maxPrice), [maxPrice, products, selectedCategories]);
+  const searchTerm = initialSearch.trim().toLowerCase();
+  const filteredProducts = useMemo(() => products.filter((product) => {
+    const searchableText = [product.name, product.category, product.description, product.shortDescription, product.material, product.dimensions, product.warranty].filter(Boolean).join(" ").toLowerCase();
+    return (selectedCategories.length === 0 || selectedCategories.includes(product.categoryId)) && product.price <= maxPrice && (!searchTerm || searchableText.includes(searchTerm));
+  }), [maxPrice, products, searchTerm, selectedCategories]);
 
   function toggleCategory(category) {
     setSelectedCategories((current) => current.includes(category) ? current.filter((item) => item !== category) : [...current, category]);
@@ -43,8 +48,8 @@ export default function ProductCatalog({ categories, products, initialSelectedCa
         <fieldset className="filter-group filter-price"><legend><span>Max Price</span><strong>{formatPrice(maxPrice)}</strong></legend><input aria-label="Maximum price" max={highestPrice} min={lowestPrice} onChange={(event) => setMaxPrice(Number(event.target.value))} step="250" type="range" value={maxPrice} /><div><span>{formatPrice(lowestPrice)}</span><span>{formatPrice(highestPrice)}</span></div></fieldset>
       </aside>
       <div className="shop-products-area">
-        <p className="products-showing">Showing <strong>{filteredProducts.length}</strong> products</p>
-        {filteredProducts.length > 0 ? <div className="shop-grid">{filteredProducts.map((product) => <CatalogProductCard product={product} key={product.id} />)}</div> : <div className="no-products"><h3>No matching chairs</h3><p>Try raising the maximum price or choosing another category.</p><button type="button" onClick={clearFilters}>Reset filters</button></div>}
+        <p className="products-showing">Showing <strong>{filteredProducts.length}</strong> products{searchTerm && <> for <strong>&quot;{initialSearch.trim()}&quot;</strong></>}</p>
+        {filteredProducts.length > 0 ? <div className="shop-grid">{filteredProducts.map((product) => <CatalogProductCard product={product} key={product.id} />)}</div> : <div className="no-products"><h3>No matching chairs</h3><p>Try a different keyword or adjust the filters.</p><button type="button" onClick={clearFilters}>Reset filters</button></div>}
       </div>
     </div>
   </section>;

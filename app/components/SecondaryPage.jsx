@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import logo from "../../public/logo.png";
-import HeaderActions from "./HeaderActions";
+import HeaderActions, { SearchForm } from "./HeaderActions";
 
 function NavigationScrollProgress() {
   const progressRef = useRef(null);
@@ -95,7 +95,7 @@ export function SiteNavigation({ active, categories = [] }) {
       <details className="mobile-navigation" ref={mobileMenuRef}>
         <summary aria-label="Open navigation menu"><span /><span /><span /></summary>
         <div className="mobile-navigation-panel" onClick={closeMobileMenu}>
-          <div className="mobile-menu-search" aria-hidden="true"><span>Search chairs...</span><span>⌕</span></div>
+          <SearchForm className="mobile-menu-search" onEscape={() => mobileMenuRef.current?.removeAttribute("open")} />
           <Link href="/" onClick={(event) => returnToCurrentPageTop(event, "/")} scroll>Home</Link>
           {categoryLinks.map((link) => <Link href={link.href} key={link.href} onClick={(event) => returnToCurrentPageTop(event, link.href)} scroll>{link.label}</Link>)}
           <details className="mobile-shop-menu">

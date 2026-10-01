@@ -83,7 +83,8 @@ export default function ProductEditor({ categories, product, onClose, onDeleted,
     setIsSaving(true);
     setMessage("");
     const { id, ...changes } = draft;
-    const payload = { ...changes, isCustomProduct: isNewProduct, price: Number(draft.price), stock: Number(draft.stock || 0) };
+    const payload = { ...changes, price: Number(draft.price), stock: Number(draft.stock || 0) };
+    if (isNewProduct) payload.isCustomProduct = true;
     const response = await fetch("/api/admin/catalog", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, changes: payload }) });
     const result = await readApiResponse(response);
     setIsSaving(false);

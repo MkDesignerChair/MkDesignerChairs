@@ -1,9 +1,18 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { revalidatePath } from "next/cache";
 import { getCategories } from "./category-catalog";
 import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
 
 const overridesPath = join(process.cwd(), "data", "catalog-overrides.json");
+
+function revalidateCatalogPages() {
+  revalidatePath("/");
+  revalidatePath("/shop");
+  revalidatePath("/office-chairs");
+  revalidatePath("/dining-chairs");
+  revalidatePath("/products/[slug]", "page");
+}
 
 function parseOverrides(contents) {
   const parsed = JSON.parse(contents);
@@ -42,6 +51,7 @@ export async function deleteCatalogProduct(productId) {
   const overrides = await getCatalogOverrides();
   const nextOverrides = { ...overrides, [productId]: { ...(overrides[productId] || {}), isDeleted: true } };
   await saveCatalogOverrides(nextOverrides);
+  revalidateCatalogPages();
 }
 
 export async function updateCatalogOverride(productId, changes) {
@@ -87,6 +97,7 @@ export async function updateCatalogOverride(productId, changes) {
 
   const nextOverrides = { ...overrides, [productId]: nextOverride };
   await saveCatalogOverrides(nextOverrides);
+  revalidateCatalogPages();
 
   return nextOverride;
 }

@@ -70,7 +70,7 @@ async function readApiResponse(response) {
   }
 }
 
-export default function AdminDashboard({ adminEmail, categories, customers, inquiries, orders, products, reviews, siteContent }) {
+export default function AdminDashboard({ adminEmail, categories, customers, inquiries, orders, parcelDefaults, products, reviews, siteContent }) {
   const [catalog, setCatalog] = useState(products);
   const [categoryList, setCategoryList] = useState(categories);
   const [message, setMessage] = useState("");
@@ -294,7 +294,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   }
 
   function renderOrders() {
-    return <OrdersManager initialOrders={orders} onUpdated={() => router.refresh()} products={catalog} />;
+    return <OrdersManager initialOrders={orders} onUpdated={() => router.refresh()} parcelDefaults={parcelDefaults} products={catalog} />;
   }
 
   function renderCustomers() {

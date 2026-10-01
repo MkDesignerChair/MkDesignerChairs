@@ -11,11 +11,11 @@ export async function POST(request) {
   if (!await isAdminAuthenticated()) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 
   try {
-    const { id, action, courierId } = await request.json();
+    const { id, action, courierId, parcel } = await request.json();
     if (typeof id !== "string" || !id) return NextResponse.json({ error: "Order ID is required." }, { status: 400 });
 
     const order = action === "create"
-      ? await createShiprocketShipmentForOrder(id)
+      ? await createShiprocketShipmentForOrder(id, parcel)
       : action === "assign_awb"
         ? await assignShiprocketAwbForOrder(id, courierId)
         : action === "schedule_pickup"

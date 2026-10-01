@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const trackingSteps = [["placed", "Order Placed"], ["confirmed", "Confirmed"], ["packed", "Packed"], ["shipped", "Shipped"], ["out_for_delivery", "Out for Delivery"], ["delivered", "Delivered"]];
+const defaultParcelFallback = { length: 80, breadth: 70, height: 120, weight: 18 };
 
 function formatMoney(value) { return `₹${Number(value).toLocaleString("en-IN")}`; }
 
@@ -24,33 +25,38 @@ function OrderTimeline({ order }) {
   })}</ol>;
 }
 
-function ShiprocketDelivery({ isSaving, onAction, order }) {
-  if (/razorpay/i.test(order.payment?.method || "") && order.payment?.status !== "Paid") {
-    return <section className="admin-shiprocket-panel"><p className="admin-shiprocket-hint">Awaiting payment confirmation. Create a shipment after the payment is marked Paid.</p></section>;
-  }
+function ShiprocketDelivery({ defaultParcel = defaultParcelFallback, isSaving, onAction, order }) {
+  const awaitingPayment = /razorpay/i.test(order.payment?.method || "") && order.payment?.status !== "Paid";
   const shipment = order.shipping?.shiprocket;
   const isCreated = Boolean(shipment?.shipmentId);
   const hasAwb = Boolean(shipment?.awb);
   const pickupScheduled = Boolean(shipment?.pickupScheduledAt);
+  const savedParcel = order.shipping?.parcel;
+  const [parcel, setParcel] = useState(savedParcel || defaultParcel);
+
+  useEffect(() => {
+    setParcel(savedParcel || defaultParcel);
+  }, [defaultParcel.breadth, defaultParcel.height, defaultParcel.length, defaultParcel.weight, order.id, savedParcel?.breadth, savedParcel?.height, savedParcel?.length, savedParcel?.weight]);
 
   return <section className="admin-shiprocket-panel">
     <header><div><p className="admin-kicker">SHIPROCKET</p><h3>Delivery partner</h3>{isCreated && <small className="admin-shiprocket-order-id">Shiprocket Order ID: {shipment.orderId}</small>}</div><span className={`admin-shiprocket-state admin-shiprocket-state--${isCreated ? "ready" : "idle"}`}>{isCreated ? shipment.status || "Shipment created" : "Not created"}</span></header>
-    {isCreated ? <div className="admin-shiprocket-details"><span><small>Shipment ID</small><strong>{shipment.shipmentId}</strong></span><span><small>Courier</small><strong>{shipment.courierName || "Select on AWB assignment"}</strong></span><span><small>AWB</small><strong>{shipment.awb || "Not assigned"}</strong></span>{shipment.pickupToken && <span><small>Pickup token</small><strong>{shipment.pickupToken}</strong></span>}{shipment.lastActivity && <p><strong>Latest update:</strong> {shipment.lastActivity}{shipment.lastLocation ? ` · ${shipment.lastLocation}` : ""}</p>}</div> : <p className="admin-shiprocket-hint">Create a shipment only after confirming the customer address and packed parcel details.</p>}
+    {awaitingPayment ? <p className="admin-shiprocket-hint">Awaiting payment confirmation. Create a shipment after the payment is marked Paid.</p> : isCreated ? <div className="admin-shiprocket-details"><span><small>Shipment ID</small><strong>{shipment.shipmentId}</strong></span><span><small>Courier</small><strong>{shipment.courierName || "Select on AWB assignment"}</strong></span><span><small>AWB</small><strong>{shipment.awb || "Not assigned"}</strong></span>{shipment.pickupToken && <span><small>Pickup token</small><strong>{shipment.pickupToken}</strong></span>}{shipment.lastActivity && <p><strong>Latest update:</strong> {shipment.lastActivity}{shipment.lastLocation ? ` · ${shipment.lastLocation}` : ""}</p>}</div> : <p className="admin-shiprocket-hint">Create a shipment only after confirming the customer address and packed parcel details.</p>}
+    <div className="admin-parcel-editor"><div><h4>Parcel details</h4><p>Defaults are loaded from Shiprocket settings. Customize them before creating the shipment if needed.</p></div><div className="admin-parcel-fields"><label>Length (cm)<input disabled={isCreated || isSaving} min="0.1" onChange={(event) => setParcel((current) => ({ ...current, length: event.target.value }))} step="0.1" type="number" value={parcel.length} /></label><label>Breadth (cm)<input disabled={isCreated || isSaving} min="0.1" onChange={(event) => setParcel((current) => ({ ...current, breadth: event.target.value }))} step="0.1" type="number" value={parcel.breadth} /></label><label>Height (cm)<input disabled={isCreated || isSaving} min="0.1" onChange={(event) => setParcel((current) => ({ ...current, height: event.target.value }))} step="0.1" type="number" value={parcel.height} /></label><label>Weight (kg)<input disabled={isCreated || isSaving} min="0.1" onChange={(event) => setParcel((current) => ({ ...current, weight: event.target.value }))} step="0.1" type="number" value={parcel.weight} /></label></div></div>
     <div className="admin-shiprocket-actions">
-      {!isCreated && <button disabled={isSaving} onClick={() => onAction(order.id, "create")} type="button">{isSaving ? "Creating…" : "Create shipment"}</button>}
-      {isCreated && !hasAwb && <button disabled={isSaving} onClick={() => onAction(order.id, "assign_awb")} type="button">{isSaving ? "Assigning…" : "Assign AWB"}</button>}
-      {hasAwb && !pickupScheduled && <button disabled={isSaving} onClick={() => onAction(order.id, "schedule_pickup")} type="button">{isSaving ? "Scheduling…" : "Schedule pickup"}</button>}
-      {pickupScheduled && <span className="admin-shiprocket-complete">Pickup scheduled {formatDate(shipment.pickupScheduledAt, true)}</span>}
+      {!awaitingPayment && !isCreated && <button disabled={isSaving} onClick={() => onAction(order.id, "create", parcel)} type="button">{isSaving ? "Creating…" : "Create shipment"}</button>}
+      {!awaitingPayment && isCreated && !hasAwb && <button disabled={isSaving} onClick={() => onAction(order.id, "assign_awb")} type="button">{isSaving ? "Assigning…" : "Assign AWB"}</button>}
+      {!awaitingPayment && hasAwb && !pickupScheduled && <button disabled={isSaving} onClick={() => onAction(order.id, "schedule_pickup")} type="button">{isSaving ? "Scheduling…" : "Schedule pickup"}</button>}
+      {!awaitingPayment && pickupScheduled && <span className="admin-shiprocket-complete">Pickup scheduled {formatDate(shipment.pickupScheduledAt, true)}</span>}
     </div>
   </section>;
 }
 
-function OrderDetails({ order, isSaving, onShipmentAction, onStatusChange, products }) {
+function OrderDetails({ order, isSaving, onShipmentAction, onStatusChange, parcelDefaults, products }) {
   const address = order.shipping || {};
   return <div className="admin-order-details"><div className="admin-order-info-grid"><section><h3>Customer</h3><p><strong>{order.customer.name}</strong><a href={`mailto:${order.customer.email}`}>{order.customer.email}</a>{order.customer.phone && <a href={`tel:${order.customer.phone.replace(/\s/g, "")}`}>{order.customer.phone}</a>}</p></section><section><h3>Payment</h3><p><strong>{order.payment.method}</strong><span className={`admin-payment-status admin-payment-status--${order.payment.status.toLowerCase()}`}>{order.payment.status}</span><small>Payment ID: {order.payment.transactionId || "Not available"}</small></p></section><section><h3>Delivery</h3><p><strong>{address.courier || "Courier pending"}</strong><small>Tracking: {address.trackingNumber || "Not assigned"}</small><small>Estimated: {formatDate(address.estimatedDeliveryDate)}</small></p></section><section><h3>Shipping address</h3><p><strong>{address.addressLine1}</strong>{address.addressLine2 && <span>{address.addressLine2}</span>}<span>{address.city}, {address.state} {address.postalCode}</span></p></section></div><section className="admin-order-items"><h3>Ordered products</h3>{order.items.map((item, index) => { const image = item.image || products.find((product) => product.name === item.name)?.image || "/placeholder.png"; return <div className="admin-order-item" key={`${item.name}-${index}`}><img alt={item.name} src={image} /><span><strong>{item.name}</strong><small>Qty {item.quantity} × {formatMoney(item.unitPrice)}</small></span><b>{formatMoney(item.quantity * item.unitPrice)}</b></div>; })}<footer><span>Subtotal <b>{formatMoney(order.subtotal)}</b></span><span>Shipping <b>{order.shippingCost ? formatMoney(order.shippingCost) : "Free"}</b></span><strong>Total <b>{formatMoney(order.totalAmount)}</b></strong></footer></section><section className="admin-order-tracking"><div><h3>Order tracking</h3><p>Track fulfillment updates and manage the live Shiprocket delivery workflow.</p></div><ShiprocketDelivery isSaving={isSaving} onAction={onShipmentAction} order={order} /><OrderTimeline order={order} /><label>Fulfillment status<select disabled={isSaving} value={order.status} onChange={(event) => onStatusChange(order.id, event.target.value)}>{trackingSteps.map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select></label></section></div>;
 }
 
-export default function OrdersManager({ initialOrders, onUpdated, products }) {
+export default function OrdersManager({ initialOrders, onUpdated, parcelDefaults, products }) {
   const [orders, setOrders] = useState(initialOrders);
   const [savingOrderId, setSavingOrderId] = useState("");
   const [message, setMessage] = useState("");
@@ -72,13 +78,13 @@ export default function OrdersManager({ initialOrders, onUpdated, products }) {
     } finally { setSavingOrderId(""); }
   }
 
-  async function updateShipment(id, action) {
+  async function updateShipment(id, action, parcel) {
     const labels = { create: "create a Shiprocket shipment", assign_awb: "assign an AWB", schedule_pickup: "schedule pickup" };
     if (!window.confirm(`Are you sure you want to ${labels[action]} for this order?`)) return;
     setSavingOrderId(id);
     setMessage("");
     try {
-      const response = await fetch("/api/admin/shipments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action }) });
+      const response = await fetch("/api/admin/shipments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, parcel }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to update the Shiprocket shipment.");
       replaceOrder(result.order);

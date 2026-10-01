@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const CartContext = createContext(null);
 const STORAGE_KEY = "mk-designer-chairs-cart";
+const WISHLIST_STORAGE_KEY = "mk-designer-chairs-wishlist";
 
 function isStoredCartItem(value) {
   return value && typeof value === "object" && typeof value.id === "string" && typeof value.image === "string" && typeof value.name === "string" && Number.isFinite(value.price) && value.price >= 0 && Number.isInteger(value.quantity) && value.quantity > 0;
@@ -22,12 +23,29 @@ function readStoredCart() {
   }
 }
 
+function readStoredWishlist() {
+  try {
+    const value = window.localStorage.getItem(WISHLIST_STORAGE_KEY);
+    if (!value) return [];
+
+    const products = JSON.parse(value);
+    return Array.isArray(products) ? products.filter((product) => product && typeof product.id === "string" && typeof product.name === "string" && typeof product.image === "string" && Number.isFinite(product.price)) : [];
+  } catch {
+    window.localStorage.removeItem(WISHLIST_STORAGE_KEY);
+    return [];
+  }
+}
+
 export function StoreProvider({ children }) {
   const [items, setItems] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
   const [isReady, setIsReady] = useState(false);
+  const [cartMessage, setCartMessage] = useState("");
+  const cartMessageTimer = useRef(null);
 
   useEffect(() => {
     setItems(readStoredCart());
+    setWishlistItems(readStoredWishlist());
     setIsReady(true);
   }, []);
 
@@ -36,6 +54,22 @@ export function StoreProvider({ children }) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
   }, [isReady, items]);
+
+  useEffect(() => {
+    if (isReady) {
+      window.localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlistItems));
+    }
+  }, [isReady, wishlistItems]);
+
+  useEffect(() => () => {
+    if (cartMessageTimer.current) window.clearTimeout(cartMessageTimer.current);
+  }, []);
+
+  function showStoreMessage(message) {
+    if (cartMessageTimer.current) window.clearTimeout(cartMessageTimer.current);
+    setCartMessage(message);
+    cartMessageTimer.current = window.setTimeout(() => setCartMessage(""), 3000);
+  }
 
   const value = useMemo(() => ({
     addItem(product) {
@@ -48,6 +82,7 @@ export function StoreProvider({ children }) {
 
         return [...currentItems, { ...product, quantity: 1 }];
       });
+      showStoreMessage(`${product.name} added to your cart.`);
     },
     decrementItem(productId) {
       setItems((currentItems) => currentItems.flatMap((item) => {
@@ -67,12 +102,22 @@ export function StoreProvider({ children }) {
     clearCart() {
       setItems([]);
     },
+    toggleWishlist(product) {
+      const isSaved = wishlistItems.some((item) => item.id === product.id);
+      setWishlistItems((currentItems) => isSaved ? currentItems.filter((item) => item.id !== product.id) : [...currentItems, product]);
+      showStoreMessage(isSaved ? `${product.name} removed from your wishlist.` : `${product.name} added to your wishlist.`);
+    },
+    removeWishlistItem(productId) {
+      setWishlistItems((currentItems) => currentItems.filter((item) => item.id !== productId));
+    },
     items,
     isReady,
     totalItems: items.reduce((total, item) => total + item.quantity, 0),
-  }), [isReady, items]);
+    wishlistItems,
+    wishlistTotal: wishlistItems.length,
+  }), [isReady, items, wishlistItems]);
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return <CartContext.Provider value={value}>{children}{cartMessage && <div className="cart-toast" role="status" aria-live="polite"><span aria-hidden="true">✓</span>{cartMessage}</div>}</CartContext.Provider>;
 }
 
 export function useCart() {

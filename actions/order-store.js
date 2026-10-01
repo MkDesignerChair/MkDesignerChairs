@@ -61,6 +61,20 @@ export async function updateOrderStatus(id, status) {
   return orders[index];
 }
 
+export async function updateOrderParcel(id, parcel) {
+  if (typeof id !== "string" || !id) throw new Error("Order ID is required.");
+  const values = { length: Number(parcel?.length), breadth: Number(parcel?.breadth), height: Number(parcel?.height), weight: Number(parcel?.weight) };
+  if (Object.values(values).some((value) => !Number.isFinite(value) || value <= 0)) throw new Error("Parcel dimensions and weight must all be positive numbers.");
+
+  const orders = await readOrders();
+  const index = orders.findIndex((order) => order.id === id);
+  if (index === -1) throw new Error("Order not found.");
+
+  orders[index] = { ...orders[index], shipping: { ...(orders[index].shipping || {}), parcel: values } };
+  await writeOrders(orders);
+  return orders[index];
+}
+
 export async function getOrder(id) {
   const orders = await readOrders();
   return orders.find((order) => order.id === id) || null;

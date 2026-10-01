@@ -47,6 +47,24 @@ function configuration() {
   };
 }
 
+export function getDefaultParcel() {
+  return {
+    length: positiveNumberEnv("SHIPROCKET_DEFAULT_LENGTH_CM"),
+    breadth: positiveNumberEnv("SHIPROCKET_DEFAULT_BREADTH_CM"),
+    height: positiveNumberEnv("SHIPROCKET_DEFAULT_HEIGHT_CM"),
+    weight: positiveNumberEnv("SHIPROCKET_DEFAULT_WEIGHT_KG"),
+  };
+}
+
+export function normalizeParcel(parcel, fallback) {
+  const values = { ...fallback, ...(parcel || {}) };
+  const normalized = { length: Number(values.length), breadth: Number(values.breadth), height: Number(values.height), weight: Number(values.weight) };
+  if (Object.values(normalized).some((value) => !Number.isFinite(value) || value <= 0)) {
+    throw new ShiprocketError("Parcel length, breadth, height, and weight must all be positive numbers.", 400);
+  }
+  return normalized;
+}
+
 async function responseData(response) {
   const text = await response.text();
   if (!text) return {};
@@ -158,6 +176,7 @@ function orderPayload(order, config) {
   if (!Array.isArray(order.items) || !order.items.length) throw new ShiprocketError("Order needs at least one item before creating a shipment.", 400);
 
   const isCod = /cash|cod/i.test(String(order.payment?.method || ""));
+  const parcel = normalizeParcel(order.shipping?.parcel, config.parcel);
   return {
     order_id: orderReference(order),
     order_date: new Date(order.createdAt || Date.now()).toISOString().slice(0, 16).replace("T", " "),
@@ -187,10 +206,10 @@ function orderPayload(order, config) {
     transaction_charges: 0,
     total_discount: 0,
     sub_total: Number(order.subtotal || 0),
-    length: config.parcel.length,
-    breadth: config.parcel.breadth,
-    height: config.parcel.height,
-    weight: config.parcel.weight,
+    length: parcel.length,
+    breadth: parcel.breadth,
+    height: parcel.height,
+    weight: parcel.weight,
   };
 }
 
@@ -248,9 +267,10 @@ async function selectServiceableCourier(order, shipment, config) {
 
 export async function assignAwb(order, shipment, courierIdInput) {
   const config = configuration();
+  const parcel = normalizeParcel(order.shipping?.parcel, config.parcel);
   const selectedCourier = courierIdInput || shipment.courierId || config.defaultCourierId
     ? null
-    : await selectServiceableCourier(order, shipment, config);
+    : await selectServiceableCourier(order, shipment, { ...config, parcel });
   const courierId = String(courierIdInput || shipment.courierId || config.defaultCourierId || selectedCourier?.id || "");
   if (!/^\d+$/.test(courierId)) throw new ShiprocketError("A serviceable courier could not be selected. Add SHIPROCKET_DEFAULT_COURIER_ID or select one in Shiprocket.", 400);
 

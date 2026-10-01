@@ -1,5 +1,5 @@
-import { assignAwb, createShipment, schedulePickup } from "../app/lib/shiprocket";
-import { getOrder, updateShiprocketShipment } from "./order-store";
+import { assignAwb, createShipment, getDefaultParcel, normalizeParcel, schedulePickup } from "../app/lib/shiprocket";
+import { getOrder, updateOrderParcel, updateShiprocketShipment } from "./order-store";
 
 async function requireOrder(id) {
   const order = await getOrder(id);
@@ -10,10 +10,15 @@ async function requireOrder(id) {
   return order;
 }
 
-export async function createShiprocketShipmentForOrder(id) {
-  const order = await requireOrder(id);
+export async function createShiprocketShipmentForOrder(id, parcelInput) {
+  let order = await requireOrder(id);
   const existingShipment = order.shipping?.shiprocket;
   if (existingShipment?.shipmentId) throw new Error("This order already has a Shiprocket shipment.");
+
+  if (parcelInput) {
+    const parcel = normalizeParcel(parcelInput, getDefaultParcel());
+    order = await updateOrderParcel(id, parcel);
+  }
 
   const shipment = await createShipment(order);
   return updateShiprocketShipment(id, shipment);
