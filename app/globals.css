@@ -1384,7 +1384,8 @@ img { display: block; max-width: 100%; }
     z-index: 1000;
   }
 
-  .shop-page { padding-top: 76px; }
+  .shop-page,
+  .cart-page { padding-top: 76px; }
 
   .hero .brand,
   .inner-navbar .brand {
