@@ -294,7 +294,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   }
 
   function renderOrders() {
-    return <OrdersManager initialOrders={orders} onUpdated={() => router.refresh()} />;
+    return <OrdersManager initialOrders={orders} onUpdated={() => router.refresh()} products={catalog} />;
   }
 
   function renderCustomers() {

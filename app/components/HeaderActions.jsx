@@ -49,7 +49,7 @@ export default function HeaderActions() {
 
   return <div className="nav-actions header-actions">
     <button className="icon-button" type="button" aria-label="Search products" onClick={() => router.push("/shop")}><SearchIcon /></button>
-    {user ? <details className="customer-menu"><summary aria-label="Open customer account menu"><UserIcon /><span>Account</span></summary><div className="customer-menu-panel"><small>Signed in as</small><strong>{user.name}</strong><span title={user.email}>{user.email}</span><button className="customer-logout" type="button" onClick={logout}>Logout</button></div></details> : <Link className="icon-button" href="/login" aria-label="Login or sign up"><UserIcon /></Link>}
+    {user ? <details className="customer-menu"><summary aria-label="Open customer account menu"><UserIcon /><span>Account</span></summary><div className="customer-menu-panel"><small>Signed in as</small><strong>{user.name}</strong><span title={user.email}>{user.email}</span><Link className="customer-orders-link" href="/orders">My orders</Link><button className="customer-logout" type="button" onClick={logout}>Logout</button></div></details> : <Link className="icon-button" href="/login" aria-label="Login or sign up"><UserIcon /></Link>}
     <button className="icon-button cart" type="button" aria-label="View cart" onClick={() => router.push("/cart")}><CartIcon /><span>{totalItems}</span></button>
   </div>;
 }

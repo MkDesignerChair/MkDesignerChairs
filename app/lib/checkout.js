@@ -59,7 +59,7 @@ export async function priceCart(cart) {
     if (!product || !Number.isSafeInteger(product.price) || product.price < 1 || quantity > 99 || (hasStockValue && (!Number.isInteger(stock) || stock < quantity))) {
       throw new CheckoutError("A cart item is unavailable. Refresh the shop and try again.");
     }
-    return { id, name: product.name, quantity, unitPrice: product.price };
+    return { id, image: product.image, name: product.name, quantity, unitPrice: product.price };
   });
   const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const { settings } = await getSiteContent();

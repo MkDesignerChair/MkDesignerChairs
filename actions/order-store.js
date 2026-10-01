@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getPersistentJson, isPersistentDataConfigured, savePersistentJson } from "../app/lib/imagekit-store";
@@ -37,6 +38,16 @@ export async function getOrders() {
   return orders.sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
 }
 
+export async function getOrdersForCustomerEmail(email) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return [];
+
+  const orders = await readOrders();
+  return orders
+    .filter((order) => String(order.customer?.email || "").trim().toLowerCase() === normalizedEmail)
+    .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+}
+
 export async function updateOrderStatus(id, status) {
   if (typeof id !== "string" || !id) throw new Error("Order ID is required.");
   if (!orderSteps.includes(status)) throw new Error("Invalid order status.");
@@ -56,10 +67,17 @@ export async function getOrder(id) {
 }
 
 let checkoutOrderWrite = Promise.resolve();
+let shiprocketWebhookWrite = Promise.resolve();
 
 function serializeCheckoutWrite(work) {
   const save = checkoutOrderWrite.then(work);
   checkoutOrderWrite = save.catch(() => {});
+  return save;
+}
+
+function serializeShiprocketWebhookWrite(work) {
+  const save = shiprocketWebhookWrite.then(work);
+  shiprocketWebhookWrite = save.catch(() => {});
   return save;
 }
 
@@ -107,6 +125,7 @@ export async function updateShiprocketShipment(id, shipment) {
       ...currentShipping,
       courier: shipment.courierName || currentShipping.courier || "Shiprocket courier",
       trackingNumber: shipment.awb || currentShipping.trackingNumber || "Not assigned",
+      trackingUrl: shipment.trackingUrl || currentShipping.trackingUrl || "",
       estimatedDeliveryDate,
       shiprocket: shipment,
     },
@@ -116,7 +135,7 @@ export async function updateShiprocketShipment(id, shipment) {
 }
 
 function webhookOrderStatus(payload) {
-  const status = `${payload.current_status || ""} ${payload.shipment_status || ""}`.toUpperCase();
+  const status = `${payload.current_status || ""} ${payload.shipment_status || ""}`.toUpperCase().replace(/[_-]/g, " ");
   if (status.includes("DELIVERED")) return "delivered";
   if (status.includes("OUT FOR DELIVERY")) return "out_for_delivery";
   if (status.includes("IN TRANSIT") || status.includes("SHIPPED") || status.includes("PICKED UP") || status.includes("MANIFEST")) return "shipped";
@@ -125,64 +144,101 @@ function webhookOrderStatus(payload) {
   return "";
 }
 
-export async function applyShiprocketTrackingEvent(payload) {
-  if (!payload || typeof payload !== "object") throw new Error("Invalid tracking event.");
-  const awb = String(payload.awb || "").trim();
-  const sourceOrderId = String(payload.order_id || "").trim();
-  const shiprocketOrderId = String(payload.sr_order_id || "").trim();
-  if (!awb && !sourceOrderId && !shiprocketOrderId) throw new Error("Tracking event does not identify an order.");
-
-  const orders = await readOrders();
-  const index = orders.findIndex((order) => {
-    const shipment = order.shipping?.shiprocket || {};
-    return (awb && (shipment.awb === awb || order.shipping?.trackingNumber === awb)) ||
-      (sourceOrderId && (shipment.sourceOrderId === sourceOrderId || order.orderNumber === sourceOrderId)) ||
-      (shiprocketOrderId && shipment.orderId === shiprocketOrderId);
-  });
-  if (index === -1) return null;
-
-  const timestamp = new Date().toISOString();
-  const order = orders[index];
-  const shipping = order.shipping || {};
-  const existingShipment = shipping.shiprocket || {};
-  const scans = Array.isArray(payload.scans) ? payload.scans.slice(-15).map((scan) => ({
+function normalizedWebhookScans(payload) {
+  if (!Array.isArray(payload.scans)) return [];
+  return payload.scans.slice(-15).map((scan) => ({
     date: String(scan.date || ""),
     status: String(scan["sr-status-label"] || scan.status || ""),
     activity: String(scan.activity || ""),
     location: String(scan.location || ""),
-  })) : existingShipment.scans || [];
-  const shipment = {
-    ...existingShipment,
-    awb: awb || existingShipment.awb || "",
-    courierName: String(payload.courier_name || existingShipment.courierName || "Shiprocket courier"),
-    status: String(payload.current_status || payload.shipment_status || existingShipment.status || ""),
-    statusId: String(payload.current_status_id || payload.shipment_status_id || existingShipment.statusId || ""),
-    sourceOrderId: sourceOrderId || existingShipment.sourceOrderId || order.orderNumber,
-    orderId: shiprocketOrderId || existingShipment.orderId || "",
-    estimatedDelivery: String(payload.etd || existingShipment.estimatedDelivery || ""),
-    lastActivity: scans.at(-1)?.activity || String(payload.activity || existingShipment.lastActivity || ""),
-    lastLocation: scans.at(-1)?.location || String(payload.location || existingShipment.lastLocation || ""),
-    scans,
-    lastWebhookAt: timestamp,
-  };
-  let nextOrder = {
-    ...order,
-    shipping: {
-      ...shipping,
-      courier: shipment.courierName,
-      trackingNumber: shipment.awb || shipping.trackingNumber || "Not assigned",
-      estimatedDeliveryDate: shipment.estimatedDelivery || shipping.estimatedDeliveryDate || "",
-      shiprocket: shipment,
-    },
-  };
-  const nextStatus = webhookOrderStatus(payload);
-  if (nextStatus && orderSteps.indexOf(nextStatus) >= orderSteps.indexOf(nextOrder.status)) {
-    nextOrder = withStatus(nextOrder, nextStatus, timestamp);
-  }
+  }));
+}
 
-  orders[index] = nextOrder;
-  await writeOrders(orders);
-  return nextOrder;
+function webhookEventKey(payload, scans) {
+  const explicitId = String(payload.event_id || payload.webhook_id || "").trim();
+  if (explicitId) return `event:${explicitId}`;
+
+  const fingerprint = JSON.stringify({
+    awb: String(payload.awb || "").trim(),
+    sourceOrderId: String(payload.order_id || "").trim(),
+    shiprocketOrderId: String(payload.sr_order_id || "").trim(),
+    status: String(payload.current_status || payload.shipment_status || "").trim(),
+    statusId: String(payload.current_status_id || payload.shipment_status_id || "").trim(),
+    etd: String(payload.etd || "").trim(),
+    scans,
+  });
+  return `hash:${createHash("sha256").update(fingerprint).digest("hex")}`;
+}
+
+function shipmentTrackingUrl(payload, currentShipment) {
+  const suppliedUrl = payload.tracking_url || payload.track_url || payload.tracking_data?.track_url || payload.tracking_data?.tracking_url;
+  if (typeof suppliedUrl === "string" && /^https:\/\//i.test(suppliedUrl.trim())) return suppliedUrl.trim();
+  return currentShipment.trackingUrl || "";
+}
+
+export async function applyShiprocketTrackingEvent(payload) {
+  if (!payload || typeof payload !== "object") throw new Error("Invalid tracking event.");
+  return serializeShiprocketWebhookWrite(async () => {
+    const awb = String(payload.awb || "").trim();
+    const sourceOrderId = String(payload.order_id || "").trim();
+    const shiprocketOrderId = String(payload.sr_order_id || "").trim();
+    if (!awb && !sourceOrderId && !shiprocketOrderId) throw new Error("Tracking event does not identify an order.");
+
+    const orders = await readOrders();
+    const index = orders.findIndex((order) => {
+      const shipment = order.shipping?.shiprocket || {};
+      const numericOrderNumber = String(order.orderNumber || "").replace(/\D/g, "");
+      return (awb && (shipment.awb === awb || order.shipping?.trackingNumber === awb)) ||
+        (sourceOrderId && (shipment.sourceOrderId === sourceOrderId || order.orderNumber === sourceOrderId || numericOrderNumber === sourceOrderId)) ||
+        (shiprocketOrderId && shipment.orderId === shiprocketOrderId);
+    });
+    if (index === -1) return null;
+
+    const timestamp = new Date().toISOString();
+    const order = orders[index];
+    const shipping = order.shipping || {};
+    const existingShipment = shipping.shiprocket || {};
+    const scans = normalizedWebhookScans(payload);
+    const eventKey = webhookEventKey(payload, scans);
+    const priorEventKeys = Array.isArray(existingShipment.webhookEventKeys) ? existingShipment.webhookEventKeys : [];
+    if (priorEventKeys.includes(eventKey)) return order;
+
+    const shipment = {
+      ...existingShipment,
+      awb: awb || existingShipment.awb || "",
+      courierName: String(payload.courier_name || existingShipment.courierName || "Shiprocket courier"),
+      status: String(payload.current_status || payload.shipment_status || existingShipment.status || ""),
+      statusId: String(payload.current_status_id || payload.shipment_status_id || existingShipment.statusId || ""),
+      sourceOrderId: sourceOrderId || existingShipment.sourceOrderId || order.orderNumber,
+      orderId: shiprocketOrderId || existingShipment.orderId || "",
+      trackingUrl: shipmentTrackingUrl(payload, existingShipment),
+      estimatedDelivery: String(payload.etd || existingShipment.estimatedDelivery || ""),
+      lastActivity: scans.at(-1)?.activity || String(payload.activity || existingShipment.lastActivity || ""),
+      lastLocation: scans.at(-1)?.location || String(payload.location || existingShipment.lastLocation || ""),
+      scans: scans.length ? scans : existingShipment.scans || [],
+      webhookEventKeys: [...priorEventKeys, eventKey].slice(-50),
+      lastWebhookAt: timestamp,
+    };
+    let nextOrder = {
+      ...order,
+      shipping: {
+        ...shipping,
+        courier: shipment.courierName,
+        trackingNumber: shipment.awb || shipping.trackingNumber || "Not assigned",
+        trackingUrl: shipment.trackingUrl || shipping.trackingUrl || "",
+        estimatedDeliveryDate: shipment.estimatedDelivery || shipping.estimatedDeliveryDate || "",
+        shiprocket: shipment,
+      },
+    };
+    const nextStatus = webhookOrderStatus(payload);
+    if (nextStatus && orderSteps.indexOf(nextStatus) >= orderSteps.indexOf(nextOrder.status)) {
+      nextOrder = withStatus(nextOrder, nextStatus, timestamp);
+    }
+
+    orders[index] = nextOrder;
+    await writeOrders(orders);
+    return nextOrder;
+  });
 }
 
 export async function updateOrderCustomerByEmail(email, changes) {

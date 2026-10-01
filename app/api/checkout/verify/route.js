@@ -30,7 +30,7 @@ export async function POST(request) {
       id: order.orderNumber,
       orderNumber: order.orderNumber,
       customer: { ...order.customer, phone: order.shipping.phone },
-      items: order.items.map(({ name, quantity, unitPrice }) => ({ name, quantity, unitPrice })),
+      items: order.items.map(({ image, name, quantity, unitPrice }) => ({ image, name, quantity, unitPrice })),
       subtotal: order.subtotal,
       shippingCost: order.shippingCost,
       totalAmount: order.totalAmount,

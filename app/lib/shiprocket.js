@@ -65,6 +65,11 @@ function providerMessage(data, fallback) {
   return fallback;
 }
 
+function trackingUrl(data) {
+  const candidate = data?.tracking_url || data?.track_url || data?.data?.tracking_url || data?.data?.track_url;
+  return typeof candidate === "string" && /^https:\/\//i.test(candidate.trim()) ? candidate.trim() : "";
+}
+
 async function authenticate(force = false) {
   const now = Date.now();
   if (authenticationBlockedUntil > now) {
@@ -201,6 +206,7 @@ export async function createShipment(order) {
     courierId: data.courier_company_id ? String(data.courier_company_id) : "",
     courierName: data.courier_name || "",
     awb: data.awb_code || "",
+    trackingUrl: trackingUrl(data),
     status: data.status || "NEW",
     createdAt: new Date().toISOString(),
   };
@@ -260,6 +266,7 @@ export async function assignAwb(order, shipment, courierIdInput) {
     courierId: String(result.courier_company_id || courierId),
     courierName: result.courier_name || selectedCourier?.name || shipment.courierName || "Shiprocket courier",
     awb: String(result.awb_code),
+    trackingUrl: trackingUrl(data) || shipment.trackingUrl || "",
     status: result.status || shipment.status || "AWB ASSIGNED",
     awbAssignedAt: new Date().toISOString(),
     estimatedDelivery: selectedCourier?.estimatedDelivery || shipment.estimatedDelivery || "",
@@ -277,6 +284,7 @@ export async function schedulePickup(shipment) {
     ...shipment,
     pickupToken: String(result.pickup_token_number || result.pickup_token || shipment.pickupToken || ""),
     pickupScheduledAt: new Date().toISOString(),
+    trackingUrl: trackingUrl(data) || shipment.trackingUrl || "",
     status: result.status || shipment.status || "PICKUP SCHEDULED",
   };
 }
