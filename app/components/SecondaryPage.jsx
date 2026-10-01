@@ -103,10 +103,9 @@ export function SiteNavigation({ active, categories = [] }) {
             <div>{categories.map((category) => <Link href={`/shop?category=${encodeURIComponent(category.slug)}`} key={category.id}>{category.name}</Link>)}<Link href="/shop">Shop All</Link></div>
           </details>
           {links.filter((link) => ["About", "Contact"].includes(link.label)).map((link) => <Link href={link.href} key={link.href} onClick={(event) => returnToCurrentPageTop(event, link.href)} scroll>{link.label}</Link>)}
-          {customer ? (
-            <button className="mobile-menu-auth mobile-menu-logout" type="button" onClick={logoutCustomer}>Logout</button>
-          ) : <Link className="mobile-menu-auth" href="/login">Login / Register</Link>}
+          {customer ? <button className="mobile-menu-auth mobile-menu-logout" type="button" onClick={logoutCustomer}>Logout</button> : <Link className="mobile-menu-auth" href="/login">Login / Register</Link>}
           <div className="mobile-menu-contact"><a href="tel:+910000000000">7620503029</a><a href="mailto:mkdesignerchair@gmail.com">mkdesignerchair@gmail.com</a></div>
+          {customer && <Link className="mobile-menu-orders" href="/orders">My orders</Link>}
         </div>
       </details>
       <NavigationScrollProgress />

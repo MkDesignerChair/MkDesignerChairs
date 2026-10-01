@@ -1642,6 +1642,14 @@ img { display: block; max-width: 100%; }
   .mobile-navigation-panel .mobile-menu-logout {
     cursor: pointer;
     font-family: inherit;
+    margin-top: 12px;
+  }
+
+  .mobile-navigation-panel .mobile-menu-orders {
+    color: #e5bb6d;
+    font-size: 14px;
+    padding: 0 14px 18px;
+    text-align: center;
   }
 
   .mobile-menu-contact {
