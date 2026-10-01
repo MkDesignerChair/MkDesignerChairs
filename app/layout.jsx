@@ -5,6 +5,8 @@ import StorefrontNavigation from "./components/StorefrontNavigation";
 import { getStorefrontCategories } from "../actions/category-catalog";
 import { getSiteContent } from "../actions/site-content";
 import StoreStatusNotice from "./components/StoreStatusNotice";
+import StoreSettingsLiveRefresh from "./components/StoreSettingsLiveRefresh";
+import { getStorefrontRevision } from "./lib/storefront-revision";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +21,11 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  const [categories, content] = await Promise.all([getStorefrontCategories(), getSiteContent()]);
+  const [categories, content, revision] = await Promise.all([getStorefrontCategories(), getSiteContent(), getStorefrontRevision()]);
 
   return (
     <html lang="en">
-      <body><StoreProvider><StorefrontNavigation categories={categories} /><StoreStatusNotice settings={content.settings} />{children}<SiteFooter settings={content.settings} /></StoreProvider></body>
+      <body><StoreProvider><StoreSettingsLiveRefresh revision={revision} /><StorefrontNavigation categories={categories} /><StoreStatusNotice settings={content.settings} />{children}<SiteFooter settings={content.settings} /></StoreProvider></body>
     </html>
   );
 }

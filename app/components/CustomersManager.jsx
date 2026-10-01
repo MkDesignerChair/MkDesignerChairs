@@ -14,7 +14,7 @@ function updateList(setCustomers, id, changes) {
   setCustomers((current) => current.map((customer) => customer.id === id ? { ...customer, ...changes } : customer));
 }
 
-export default function CustomersManager({ initialCustomers }) {
+export default function CustomersManager({ initialCustomers, onUpdated }) {
   const [customers, setCustomers] = useState(initialCustomers);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -41,6 +41,7 @@ export default function CustomersManager({ initialCustomers }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to update customer.");
       setCustomers((current) => current.map((customer) => customer.id === id ? result.customer : customer));
+      onUpdated();
       setMessage(successMessage);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update customer.");
@@ -59,6 +60,7 @@ export default function CustomersManager({ initialCustomers }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to remove customer.");
       setCustomers((current) => current.filter((customer) => customer.id !== id));
+      onUpdated();
       setMessage("Customer profile removed. Historical order records were kept.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to remove customer.");

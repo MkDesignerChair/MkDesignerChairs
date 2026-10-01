@@ -25,6 +25,9 @@ function OrderTimeline({ order }) {
 }
 
 function ShiprocketDelivery({ isSaving, onAction, order }) {
+  if (/razorpay/i.test(order.payment?.method || "") && order.payment?.status !== "Paid") {
+    return <section className="admin-shiprocket-panel"><p className="admin-shiprocket-hint">Awaiting payment confirmation. Create a shipment after the payment is marked Paid.</p></section>;
+  }
   const shipment = order.shipping?.shiprocket;
   const isCreated = Boolean(shipment?.shipmentId);
   const hasAwb = Boolean(shipment?.awb);
@@ -47,7 +50,7 @@ function OrderDetails({ order, isSaving, onShipmentAction, onStatusChange }) {
   return <div className="admin-order-details"><div className="admin-order-info-grid"><section><h3>Customer</h3><p><strong>{order.customer.name}</strong><a href={`mailto:${order.customer.email}`}>{order.customer.email}</a>{order.customer.phone && <a href={`tel:${order.customer.phone.replace(/\s/g, "")}`}>{order.customer.phone}</a>}</p></section><section><h3>Payment</h3><p><strong>{order.payment.method}</strong><span className={`admin-payment-status admin-payment-status--${order.payment.status.toLowerCase()}`}>{order.payment.status}</span><small>Payment ID: {order.payment.transactionId || "Not available"}</small></p></section><section><h3>Delivery</h3><p><strong>{address.courier || "Courier pending"}</strong><small>Tracking: {address.trackingNumber || "Not assigned"}</small><small>Estimated: {formatDate(address.estimatedDeliveryDate)}</small></p></section><section><h3>Shipping address</h3><p><strong>{address.addressLine1}</strong>{address.addressLine2 && <span>{address.addressLine2}</span>}<span>{address.city}, {address.state} {address.postalCode}</span></p></section></div><section className="admin-order-items"><h3>Ordered products</h3>{order.items.map((item, index) => <div key={`${item.name}-${index}`}><span><strong>{item.name}</strong><small>Qty {item.quantity} × {formatMoney(item.unitPrice)}</small></span><b>{formatMoney(item.quantity * item.unitPrice)}</b></div>)}<footer><span>Subtotal <b>{formatMoney(order.subtotal)}</b></span><span>Shipping <b>{order.shippingCost ? formatMoney(order.shippingCost) : "Free"}</b></span><strong>Total <b>{formatMoney(order.totalAmount)}</b></strong></footer></section><section className="admin-order-tracking"><div><h3>Order tracking</h3><p>Track fulfillment updates and manage the live Shiprocket delivery workflow.</p></div><ShiprocketDelivery isSaving={isSaving} onAction={onShipmentAction} order={order} /><OrderTimeline order={order} /><label>Fulfillment status<select disabled={isSaving} value={order.status} onChange={(event) => onStatusChange(order.id, event.target.value)}>{trackingSteps.map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select></label></section></div>;
 }
 
-export default function OrdersManager({ initialOrders }) {
+export default function OrdersManager({ initialOrders, onUpdated }) {
   const [orders, setOrders] = useState(initialOrders);
   const [savingOrderId, setSavingOrderId] = useState("");
   const [message, setMessage] = useState("");
@@ -62,6 +65,7 @@ export default function OrdersManager({ initialOrders }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to update fulfillment status.");
       replaceOrder(result.order);
+      onUpdated();
       setMessage(`${result.order.orderNumber} is now ${statusLabel(result.order.status)}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update fulfillment status.");
@@ -78,6 +82,7 @@ export default function OrdersManager({ initialOrders }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to update the Shiprocket shipment.");
       replaceOrder(result.order);
+      onUpdated();
       setMessage(`${result.order.orderNumber}: ${labels[action]} completed.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update the Shiprocket shipment.");

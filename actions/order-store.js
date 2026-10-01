@@ -55,6 +55,39 @@ export async function getOrder(id) {
   return orders.find((order) => order.id === id) || null;
 }
 
+let checkoutOrderWrite = Promise.resolve();
+
+function serializeCheckoutWrite(work) {
+  const save = checkoutOrderWrite.then(work);
+  checkoutOrderWrite = save.catch(() => {});
+  return save;
+}
+
+export function savePendingOrder(order) {
+  return serializeCheckoutWrite(async () => {
+    const orders = await readOrders();
+    const existing = orders.find((item) => item.payment?.razorpayOrderId === order.payment.razorpayOrderId);
+    if (existing) return existing;
+    await writeOrders([order, ...orders]);
+    return order;
+  });
+}
+
+export function savePaidOrder(order) {
+  return serializeCheckoutWrite(async () => {
+    const orders = await readOrders();
+    const existing = orders.find((item) => item.payment?.transactionId === order.payment.transactionId || item.payment?.razorpayOrderId === order.payment.razorpayOrderId);
+    if (existing) {
+      if (existing.payment.status === "Paid") return existing;
+      const updated = { ...existing, payment: order.payment };
+      await writeOrders(orders.map((item) => item.id === existing.id ? updated : item));
+      return updated;
+    }
+    await writeOrders([order, ...orders]);
+    return order;
+  });
+}
+
 export async function updateShiprocketShipment(id, shipment) {
   if (typeof id !== "string" || !id) throw new Error("Order ID is required.");
   if (!shipment || typeof shipment !== "object") throw new Error("Invalid Shiprocket shipment.");

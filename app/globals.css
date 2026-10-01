@@ -222,6 +222,7 @@ h1 span { color: #e3b86f; display: block; }
 .contact-form input:focus, .contact-form textarea:focus { border-color: #deb363; box-shadow: 0 0 0 3px rgba(222,179,99,.1); outline: none; }
 .contact-form button { background: linear-gradient(135deg, #f3cd7e, #c89548); border: 0; border-radius: 5px; color: #271d0d; cursor: pointer; font-size: 12px; font-weight: 900; justify-self: start; margin-top: 4px; padding: 13px 20px; }
 .contact-form button:disabled { cursor: wait; opacity: .72; }
+.add-cart:disabled, .buy-now:disabled { cursor: not-allowed; filter: grayscale(1); opacity: .55; transform: none; }
 .contact-form-message { color: #b9ebc1; font-size: 13px; font-weight: 700; margin: 0; }
 .contact-form-message--error { color: #efad99; }
 .contact-map { background: #141411; border: 1px solid rgba(226,194,135,.18); border-radius: 12px; grid-column: 1 / -1; overflow: hidden; }
@@ -631,6 +632,17 @@ img { display: block; max-width: 100%; }
 .cart-signed-in > span { color: #ead9b5; font-size: 12px; font-weight: 800; }
 .cart-signed-in small { color: #bdb3a4; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cart-signed-in p { color: #d8d0c3; font-size: 11px; line-height: 1.45; margin: 5px 0 0; }
+.checkout-form { align-self: start; background: #171713; border: 1px solid rgba(225,185,109,.23); border-radius: 8px; display: grid; gap: 16px; padding: 24px; }
+.checkout-form h2 { font-size: 26px; margin: 0; }
+.checkout-form > p { color: #cfc6b8; font-size: 13px; margin: 0; }
+.checkout-form label { color: #e5ddcf; display: grid; font-size: 13px; gap: 7px; }
+.checkout-form input { background: #0c0c0a; border: 1px solid rgba(225,185,109,.28); border-radius: 4px; color: #f5efe4; font: inherit; padding: 12px; width: 100%; }
+.checkout-form input:focus { border-color: #deb466; outline: 0; }
+.checkout-form .gold-button { border: 0; cursor: pointer; font: inherit; font-weight: 800; min-height: 45px; width: 100%; }
+.checkout-form .gold-button:disabled { cursor: wait; opacity: .65; }
+.checkout-form .checkout-error { color: #f0a797; line-height: 1.5; }
+.checkout-complete { min-height: 55vh; }
+.checkout-complete p:not(.eyebrow) { color: #ddd5c9; margin-bottom: 22px; }
 .auth-page { align-items: center; display: flex; justify-content: center; padding: 36px 18px; }
 .auth-card { background: linear-gradient(145deg, #1a1813, #10100e); border: 1px solid rgba(225,185,109,.27); border-radius: 10px; max-width: 480px; padding: 36px; width: 100%; }
 .auth-brand { margin: 0 auto 26px; width: max-content; }

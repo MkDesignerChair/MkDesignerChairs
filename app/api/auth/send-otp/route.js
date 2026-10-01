@@ -1,6 +1,7 @@
 import { createHash, createHmac, randomInt } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getCustomerByEmail } from "../../../../actions/customer-store";
+import { getSiteContent } from "../../../../actions/site-content";
 
 const OTP_COOKIE = "mk_designer_chairs_otp";
 const OTP_MAX_AGE_SECONDS = 10 * 60;
@@ -32,6 +33,10 @@ export async function POST(request) {
   }
 
   const existingCustomer = await getCustomerByEmail(normalizedEmail);
+  const { settings } = await getSiteContent();
+  if (normalizedName && !settings.registrationEnabled) {
+    return NextResponse.json({ error: "New customer registration is currently unavailable." }, { status: 403 });
+  }
   if (!normalizedName && !existingCustomer) {
     return NextResponse.json({ error: "User does not exist. Please create an account first." }, { status: 404 });
   }

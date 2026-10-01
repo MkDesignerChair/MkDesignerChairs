@@ -10,8 +10,9 @@ function formatPrice(price) {
 
 function CatalogProductCard({ product }) {
   const href = `/products/item/${product.detailSlug}`;
+  const outOfStock = product.stock !== undefined && (!Number.isInteger(Number(product.stock)) || Number(product.stock) < 1);
 
-  return <article className="shop-product-card"><a className="shop-card-open" href={href} aria-label={`View details for ${product.name}`} /><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span></div><div className="shop-product-details"><div className="shop-product-info"><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong></div><div className="shop-card-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
+  return <article className="shop-product-card"><a className="shop-card-open" href={href} aria-label={`View details for ${product.name}`} /><div className="shop-product-image"><img src={product.image} alt={product.name} /><span>{product.category}</span></div><div className="shop-product-details"><div className="shop-product-info"><h3>{product.name}</h3><strong>{formatPrice(product.price)}</strong>{outOfStock && <small>Out of stock</small>}</div><div className="shop-card-actions"><AddToCartButton disabled={outOfStock} product={product} /><BuyNowButton disabled={outOfStock} product={product} /></div></div></article>;
 }
 
 export default function ProductCatalog({ categories, products, initialSelectedCategory, eyebrow, title }) {

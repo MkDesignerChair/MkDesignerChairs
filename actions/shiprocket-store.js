@@ -4,6 +4,9 @@ import { getOrder, updateShiprocketShipment } from "./order-store";
 async function requireOrder(id) {
   const order = await getOrder(id);
   if (!order) throw new Error("Order not found.");
+  if (/razorpay/i.test(order.payment?.method || "") && order.payment?.status !== "Paid") {
+    throw new Error("Wait for payment confirmation before creating a shipment.");
+  }
   return order;
 }
 

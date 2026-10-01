@@ -25,6 +25,7 @@ const sections = [
       { key: "title", label: "Heading — line one" },
       { key: "titleSecondLine", label: "Heading — line two" },
       { key: "description", label: "Description", multiline: true },
+      { key: "buttonText", label: "Button text" },
     ],
   },
   {
@@ -36,6 +37,19 @@ const sections = [
       { key: "eyebrow", label: "Eyebrow label" },
       { key: "title", label: "Heading" },
       { key: "description", label: "Description", multiline: true },
+      { key: "buttonText", label: "Button text" },
+      { key: "email", label: "Quote email", type: "email" },
+    ],
+  },
+  {
+    id: "spaces",
+    title: "Designed for Every Space",
+    description: "Manage the heading, supporting copy, and call to action for the category section.",
+    fields: [
+      { key: "title", label: "Heading — line one" },
+      { key: "titleSecondLine", label: "Heading — line two" },
+      { key: "description", label: "Description", multiline: true },
+      { key: "buttonText", label: "Button text" },
     ],
   },
 ];
@@ -163,5 +177,5 @@ export default function HomepageContentEditor({ content, onContentSaved, onSecti
     }
   }
 
-  return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>Homepage Content</h1><p>Manage the three visual content sections without changing their storefront layout.</p></div><a className="admin-site-link" href="/" target="_blank" rel="noreferrer">↗ Preview page</a></div>{notice && <p className="admin-message" role="status">{notice}</p>}<section className="admin-homepage-content-grid" aria-label="Homepage content management">{sections.map((section) => { const image = content[section.id][section.image.field] || section.image.fallback; const isUploadedImage = content[section.id][section.image.field]?.startsWith("/uploads/"); const isBusy = busySection === section.id; return <form className={`admin-homepage-content-card admin-homepage-content-card--${section.id}`} key={section.id} onSubmit={(event) => saveSection(event, section)}><header><p className="admin-kicker">HOMEPAGE SECTION</p><h2>{section.title}</h2><p>{section.description}</p></header><div className="admin-homepage-image-preview"><img src={image} alt={`${section.title} preview`} /></div><div className="admin-homepage-image-controls"><label className="admin-file-input">{isBusy ? "Working…" : isUploadedImage ? "Replace image" : "Upload image"}<input accept="image/jpeg,image/png,image/webp" disabled={isBusy} type="file" onChange={(event) => { uploadImage(section, event.target.files?.[0]); event.target.value = ""; }} /></label><p className="admin-image-spec"><strong>Recommended:</strong> {section.image.ratioLabel} · {section.image.dimensions}<br />JPG, PNG, or WEBP · maximum 5 MB</p>{warnings[section.id] && <p className="admin-image-warning" role="alert">{warnings[section.id]}</p>}{isUploadedImage && <button className="admin-delete-image" disabled={isBusy} type="button" onClick={() => removeImage(section)}>Delete uploaded image</button>}</div><div className={`admin-homepage-fields admin-homepage-fields--${section.id}`}>{section.fields.map((field) => <label key={field.key}>{field.label}{field.multiline ? <textarea rows="3" value={content[section.id][field.key]} onChange={(event) => updateField(section.id, field.key, event.target.value)} /> : <input required type={field.type || "text"} value={content[section.id][field.key]} onChange={(event) => updateField(section.id, field.key, event.target.value)} />}</label>)}</div><button className="admin-save-product" disabled={isBusy} type="submit">{isBusy ? "Saving…" : `Save ${section.title}`}</button></form>; })}</section></>;
+  return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>Homepage Content</h1><p>Manage the visible homepage sections without changing their storefront layout.</p></div><a className="admin-site-link" href="/" target="_blank" rel="noreferrer">↗ Preview page</a></div>{notice && <p className="admin-message" role="status">{notice}</p>}<section className="admin-homepage-content-grid" aria-label="Homepage content management">{sections.map((section) => { const image = section.image ? content[section.id][section.image.field] || section.image.fallback : ""; const isUploadedImage = section.image && isImageKitImage(content[section.id][section.image.field]); const isBusy = busySection === section.id; return <form className={`admin-homepage-content-card admin-homepage-content-card--${section.id}`} key={section.id} onSubmit={(event) => saveSection(event, section)}><header><p className="admin-kicker">HOMEPAGE SECTION</p><h2>{section.title}</h2><p>{section.description}</p></header>{section.image && <><div className="admin-homepage-image-preview"><img src={image} alt={`${section.title} preview`} /></div><div className="admin-homepage-image-controls"><label className="admin-file-input">{isBusy ? "Working…" : isUploadedImage ? "Replace image" : "Upload image"}<input accept="image/jpeg,image/png,image/webp" disabled={isBusy} type="file" onChange={(event) => { uploadImage(section, event.target.files?.[0]); event.target.value = ""; }} /></label><p className="admin-image-spec"><strong>Recommended:</strong> {section.image.ratioLabel} · {section.image.dimensions}<br />JPG, PNG, or WEBP · maximum 5 MB</p>{warnings[section.id] && <p className="admin-image-warning" role="alert">{warnings[section.id]}</p>}{isUploadedImage && <button className="admin-delete-image" disabled={isBusy} type="button" onClick={() => removeImage(section)}>Delete uploaded image</button>}</div></>}<div className={`admin-homepage-fields admin-homepage-fields--${section.id}`}>{section.fields.map((field) => <label key={field.key}>{field.label}{field.multiline ? <textarea rows="3" value={content[section.id][field.key]} onChange={(event) => updateField(section.id, field.key, event.target.value)} /> : <input required type={field.type || "text"} value={content[section.id][field.key]} onChange={(event) => updateField(section.id, field.key, event.target.value)} />}</label>)}</div><button className="admin-save-product" disabled={isBusy} type="submit">{isBusy ? "Saving…" : `Save ${section.title}`}</button></form>; })}</section></>;
 }

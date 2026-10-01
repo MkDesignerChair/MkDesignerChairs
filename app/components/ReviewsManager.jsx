@@ -6,7 +6,7 @@ function formatReviewDate(value) {
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
-export default function ReviewsManager({ initialReviews }) {
+export default function ReviewsManager({ initialReviews, onUpdated }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [busyReviewId, setBusyReviewId] = useState("");
   const [message, setMessage] = useState("");
@@ -34,6 +34,7 @@ export default function ReviewsManager({ initialReviews }) {
       const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Unable to update review.");
       setReviews((current) => current.map((review) => review.id === id ? result.review : review));
+      onUpdated();
       setMessage(successMessage);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update review.");
@@ -52,6 +53,7 @@ export default function ReviewsManager({ initialReviews }) {
       const result = await readApiResponse(response);
       if (!response.ok) throw new Error(result.error || "Unable to delete review.");
       setReviews((current) => current.filter((review) => review.id !== id));
+      onUpdated();
       setMessage("Review deleted.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to delete review.");

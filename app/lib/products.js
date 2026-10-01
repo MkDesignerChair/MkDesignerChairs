@@ -11,6 +11,13 @@ const defaultFeaturedProducts = new Set([
   "WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg",
 ]);
 
+const legacyProductIds = new Map([
+  ["executive-office-chair", "office chair.jpeg"],
+  ["premium-office-chair", "WhatsApp Image 2026-09-12 at 1.09.06 PMdfd.jpeg"],
+  ["luxury-dining-chair", "WhatsApp Image 2026-09-12 at 1.09.07 PMdfd.jpeg"],
+  ["modern-office-chair", "WhatsApp Image 2026-09-12 at 1.09.05 PMasd.jpeg"],
+]);
+
 function formatProductName(filename, index) {
   if (filename === "office chair.jpeg") {
     return "Executive Office Chair";
@@ -64,6 +71,16 @@ export async function getProducts() {
   const products = await getCatalogProducts();
 
   return products.filter((product) => product.isActive !== false && product.categoryIsActive).map(({ categoryIsActive, ...product }) => product);
+}
+
+export function resolveCatalogProductId(id) {
+  return legacyProductIds.get(id) || id;
+}
+
+export async function getProductBySlug(slug) {
+  const products = await getProducts();
+  const productId = resolveCatalogProductId(slug);
+  return products.find((product) => product.detailSlug === slug || product.id === productId);
 }
 
 export async function getAdminProducts() {

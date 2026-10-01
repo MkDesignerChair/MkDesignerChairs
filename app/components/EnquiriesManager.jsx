@@ -8,7 +8,7 @@ function formatDate(value, includeTime = false) {
   return new Intl.DateTimeFormat("en-IN", includeTime ? { dateStyle: "medium", timeStyle: "short" } : { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
-export default function EnquiriesManager({ initialInquiries }) {
+export default function EnquiriesManager({ initialInquiries, onUpdated }) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -31,6 +31,7 @@ export default function EnquiriesManager({ initialInquiries }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to update enquiry.");
       setInquiries((current) => current.map((inquiry) => inquiry.id === id ? result.inquiry : inquiry));
+      onUpdated();
       setMessage(successMessage);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update enquiry.");
@@ -49,6 +50,7 @@ export default function EnquiriesManager({ initialInquiries }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to delete enquiry.");
       setInquiries((current) => current.filter((inquiry) => inquiry.id !== id));
+      onUpdated();
       setMessage("Enquiry deleted.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to delete enquiry.");

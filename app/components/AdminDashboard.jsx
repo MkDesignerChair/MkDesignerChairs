@@ -118,6 +118,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
       }
 
       setCatalog((current) => current.map((product) => product.id === id ? { ...product, ...result.override } : product));
+      router.refresh();
       setMessage("Catalog saved. Changes are now visible in the storefront.");
     } catch {
       setMessage("Unable to reach the server. Please try again.");
@@ -161,6 +162,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   function saveCategory(updatedCategory) {
     setCategoryList((current) => current.some((category) => category.id === updatedCategory.id) ? current.map((category) => category.id === updatedCategory.id ? updatedCategory : category) : [...current, updatedCategory]);
     setCatalog((current) => current.map((product) => product.categoryId === updatedCategory.id ? { ...product, category: updatedCategory.name, categorySlug: updatedCategory.slug } : product));
+    router.refresh();
   }
 
   async function toggleCategoryStatus(category) {
@@ -288,19 +290,19 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
   }
 
   function renderReviews() {
-    return <ReviewsManager initialReviews={reviews} />;
+    return <ReviewsManager initialReviews={reviews} onUpdated={() => router.refresh()} />;
   }
 
   function renderOrders() {
-    return <OrdersManager initialOrders={orders} />;
+    return <OrdersManager initialOrders={orders} onUpdated={() => router.refresh()} />;
   }
 
   function renderCustomers() {
-    return <CustomersManager initialCustomers={customers} />;
+    return <CustomersManager initialCustomers={customers} onUpdated={() => router.refresh()} />;
   }
 
   function renderInquiries() {
-    return <EnquiriesManager initialInquiries={inquiries} />;
+    return <EnquiriesManager initialInquiries={inquiries} onUpdated={() => router.refresh()} />;
   }
 
   function renderStoreSettings() {
@@ -318,7 +320,7 @@ export default function AdminDashboard({ adminEmail, categories, customers, inqu
       { field: "diningCollectionImage", label: "Dining Chairs image", hint: "Used in the Dining Chairs collection card.", fallback: "/Dinning%20Chair.jpeg", ratio: "4:3", dimensions: "1200 × 900 px" },
     ];
 
-    return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>Hero Section</h1><p>Update the homepage introduction, collection messages, and imagery without changing its design.</p></div><Link className="admin-site-link" href="/" target="_blank">↗ Preview page</Link></div>{message && <p className="admin-message" role="status">{message}</p>}<form className="admin-hero-form" onSubmit={saveHeroContent}><section className="admin-editor-card"><div><h2>Hero copy</h2><p className="admin-editor-hint">Text updates are published to the storefront when you save.</p></div><label>Eyebrow<input value={content.hero.eyebrow} onChange={(event) => updateHeroField("eyebrow", event.target.value)} /></label><div className="admin-editor-two"><label>Headline line one<input value={content.hero.title} onChange={(event) => updateHeroField("title", event.target.value)} /></label><label>Headline line two<input value={content.hero.accent} onChange={(event) => updateHeroField("accent", event.target.value)} /></label></div><label>Description<textarea rows="4" value={content.hero.description} onChange={(event) => updateHeroField("description", event.target.value)} /></label><div className="admin-editor-two"><label>Office Chairs message<input value={content.hero.officeCollectionDescription} onChange={(event) => updateHeroField("officeCollectionDescription", event.target.value)} /></label><label>Dining Chairs message<input value={content.hero.diningCollectionDescription} onChange={(event) => updateHeroField("diningCollectionDescription", event.target.value)} /></label></div><button className="admin-save-product" disabled={isHeroSaving} type="submit">{isHeroSaving ? "Saving…" : "Save hero content"}</button></section></form><section className="admin-hero-images" aria-label="Hero image management">{images.map(({ field, label, hint, fallback, ratio, dimensions }) => { const image = content.hero[field] || fallback; const isUploading = imageAction === field; const isUploadedImage = content.hero[field]?.startsWith("/uploads/"); return <article className="admin-hero-image-card" key={field}><img src={image} alt={`${label} preview`} /><div className="admin-hero-image-copy"><div><h2>{label}</h2><p>{hint}</p></div><div className="admin-hero-image-actions"><label className="admin-file-input">{isUploading ? "Uploading…" : isUploadedImage ? "Replace image" : "Upload image"}<input accept="image/jpeg,image/png,image/webp" disabled={isUploading} type="file" onChange={(event) => { uploadHeroImage(field, event.target.files?.[0]); event.target.value = ""; }} /></label>{isUploadedImage && <button className="admin-delete-image" disabled={isUploading} type="button" onClick={() => removeHeroImage(field)}>Delete image</button>}</div><p className="admin-hero-image-spec"><strong>Recommended:</strong> {ratio} · {dimensions}<br />JPG, PNG, or WEBP · maximum 5 MB</p></div></article>; })}</section><p className="admin-note">Deleting an uploaded image safely restores the original storefront image.</p></>;
+    return <><div className="admin-page-heading"><div><p className="admin-kicker">STOREFRONT CONTENT</p><h1>Hero Section</h1><p>Update the homepage introduction, collection messages, and imagery without changing its design.</p></div><Link className="admin-site-link" href="/" target="_blank">↗ Preview page</Link></div>{message && <p className="admin-message" role="status">{message}</p>}<form className="admin-hero-form" onSubmit={saveHeroContent}><section className="admin-editor-card"><div><h2>Hero copy</h2><p className="admin-editor-hint">Text updates are published to the storefront when you save.</p></div><label>Eyebrow<input value={content.hero.eyebrow} onChange={(event) => updateHeroField("eyebrow", event.target.value)} /></label><div className="admin-editor-two"><label>Headline line one<input value={content.hero.title} onChange={(event) => updateHeroField("title", event.target.value)} /></label><label>Headline line two<input value={content.hero.accent} onChange={(event) => updateHeroField("accent", event.target.value)} /></label></div><label>Description<textarea rows="4" value={content.hero.description} onChange={(event) => updateHeroField("description", event.target.value)} /></label><label>Primary button text<input value={content.hero.buttonText} onChange={(event) => updateHeroField("buttonText", event.target.value)} /></label><div className="admin-editor-two"><label>Office Chairs message<input value={content.hero.officeCollectionDescription} onChange={(event) => updateHeroField("officeCollectionDescription", event.target.value)} /></label><label>Dining Chairs message<input value={content.hero.diningCollectionDescription} onChange={(event) => updateHeroField("diningCollectionDescription", event.target.value)} /></label></div><button className="admin-save-product" disabled={isHeroSaving} type="submit">{isHeroSaving ? "Saving…" : "Save hero content"}</button></section></form><section className="admin-hero-images" aria-label="Hero image management">{images.map(({ field, label, hint, fallback, ratio, dimensions }) => { const image = content.hero[field] || fallback; const isUploading = imageAction === field; const isUploadedImage = isImageKitImage(content.hero[field]); return <article className="admin-hero-image-card" key={field}><img src={image} alt={`${label} preview`} /><div className="admin-hero-image-copy"><div><h2>{label}</h2><p>{hint}</p></div><div className="admin-hero-image-actions"><label className="admin-file-input">{isUploading ? "Uploading…" : isUploadedImage ? "Replace image" : "Upload image"}<input accept="image/jpeg,image/png,image/webp" disabled={isUploading} type="file" onChange={(event) => { uploadHeroImage(field, event.target.files?.[0]); event.target.value = ""; }} /></label>{isUploadedImage && <button className="admin-delete-image" disabled={isUploading} type="button" onClick={() => removeHeroImage(field)}>Delete image</button>}</div><p className="admin-hero-image-spec"><strong>Recommended:</strong> {ratio} · {dimensions}<br />JPG, PNG, or WEBP · maximum 5 MB</p></div></article>; })}</section><p className="admin-note">Deleting an uploaded image safely restores the original storefront image.</p></>;
   }
 
   function renderProducts() {

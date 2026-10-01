@@ -79,8 +79,9 @@ function FeaturedProductCard({ image, name, price, centered }) {
 
 function EnhancedFeaturedProductCard({ product, centered }) {
   const slug = product.detailSlug || product.id;
+  const outOfStock = product.stock !== undefined && (!Number.isInteger(Number(product.stock)) || Number(product.stock) < 1);
 
-  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${product.name}`}><Image src={product.image} alt={product.name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><button className="heart-button" type="button" aria-label={`Add ${product.name} to wishlist`}>♡</button></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{product.name}</h3><strong>₹ {product.price.toLocaleString("en-IN")}</strong></Link><div className="featured-product-actions"><AddToCartButton product={product} /><BuyNowButton product={product} /></div></div></article>;
+  return <article className="product-card featured-product-card"><div className={`product-image${centered ? " product-image--centered" : ""}`}><Link href={`/products/${slug}`} aria-label={`View ${product.name}`}><Image src={product.image} alt={product.name} fill sizes="(max-width: 600px) 80vw, (max-width: 1000px) 45vw, 25vw" /></Link><button className="heart-button" type="button" aria-label={`Add ${product.name} to wishlist`}>♡</button></div><div className="product-details"><Link className="featured-product-link" href={`/products/${slug}`}><h3>{product.name}</h3><strong>₹ {product.price.toLocaleString("en-IN")}</strong>{outOfStock && <small>Out of stock</small>}</Link><div className="featured-product-actions"><AddToCartButton disabled={outOfStock} product={product} /><BuyNowButton disabled={outOfStock} product={product} /></div></div></article>;
 }
 
 function ProductCard({ image, name, price, centered }) {

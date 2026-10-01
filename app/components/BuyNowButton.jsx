@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCart } from "./StoreProvider";
 
-export default function BuyNowButton({ product }) {
+export default function BuyNowButton({ disabled, product }) {
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -12,5 +12,5 @@ export default function BuyNowButton({ product }) {
     router.push("/cart");
   }
 
-  return <button className="buy-now" type="button" onClick={buyNow}>Buy now</button>;
+  return <button className="buy-now" disabled={disabled} type="button" onClick={buyNow}>{disabled ? "Out of stock" : "Buy now"}</button>;
 }

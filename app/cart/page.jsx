@@ -11,7 +11,7 @@ function formatPrice(price) {
 function CartAccessAction({ user }) {
   if (!user) return <Link className="gold-button" href="/login?next=%2Fcart">Sign in to continue</Link>;
 
-  return <div className="cart-signed-in"><span>Signed in as {user.name}</span><small>{user.email}</small><p>Checkout will appear here once payment processing is connected.</p></div>;
+  return <><div className="cart-signed-in"><span>Signed in as {user.name}</span><small>{user.email}</small></div><Link className="gold-button" href="/checkout">Continue to checkout</Link></>;
 }
 
 export default function CartPage() {
